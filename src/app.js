@@ -756,7 +756,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Settings: WhatsApp button
   document.getElementById('whatsapp-contact-btn')?.addEventListener('click', () => {
-    window.open('https://wa.me/+2349030000000?text=Hi%2C%20I%20need%20help%20with%20ScriptureQuest', '_blank');
+    window.open('https://wa.me/+2349167055488?text=Hi%2C%20I%20need%20help%20with%20ScriptureQuest', '_blank');
   });
 
   // Level up modal
