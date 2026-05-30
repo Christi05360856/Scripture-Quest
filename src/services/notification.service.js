@@ -18,7 +18,7 @@ import { COLLECTIONS }             from '../utils/constants.js';
 
 // FCM public VAPID key — replace with your actual key from Firebase Console
 // Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
-const VAPID_KEY = 'BK0pgQRV8JMxn0g8bDVJmz8B72NeOpkoYHop0FO2mP9eAI62kxr1LGR5V8XjYlZx5K0BscifgM4ABSEpao1K5Mg';
+const VAPID_KEY = BK0pgQRV8JMxn0g8bDVJmz8B72NeOpkoYHop0FO2mP9eAI62kxr1LGR5V8XjYlZx5K0BscifgM4ABSEpao1K5Mg;
 
 let _messaging       = null;
 let _unsubInbox      = null;
@@ -64,9 +64,9 @@ export async function requestPushPermission() {
     const registration = await navigator.serviceWorker.ready;
 
     const token = await getToken(messaging, {
-      vapidKey:     BK0pgQRV8JMxn0g8bDVJmz8B72NeOpkoYHop0FO2mP9eAI62kxr1LGR5V8XjYlZx5K0BscifgM4ABSEpao1K5Mg      VAPID_KEY,
-      serviceWorkerRegistration: registration
-    });
+  vapidKey: VAPID_KEY,
+  serviceWorkerRegistration: registration
+});
 
     if (token) {
       await savePushToken(user.uid, token);
