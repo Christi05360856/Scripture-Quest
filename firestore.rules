@@ -64,8 +64,7 @@ service cloud.firestore {
       allow delete: if false;
 
       // Admins can read any user profile
-      allow read: if isAdmin();
-      allow write: if isAdmin();
+    allow read: if isOwner(uid) || isAdmin();
     }
 
     // ══════════════════════════════════════
