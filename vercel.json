@@ -1,14 +1,35 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [
+  "framework": null,
+  "routes": [
     {
-      "source": "/admin",
-      "destination": "/admin.html"
+      "src": "/admin",
+      "dest": "/admin.html"
     },
     {
-      "source": "/((?!api|admin|assets|icons|sw\\.js|manifest\\.json).*)",
-      "destination": "/index.html"
+      "src": "/admin.html",
+      "dest": "/admin.html"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/icons/(.*)",
+      "dest": "/icons/$1"
+    },
+    {
+      "src": "/sw.js",
+      "dest": "/sw.js"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "/manifest.json"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
