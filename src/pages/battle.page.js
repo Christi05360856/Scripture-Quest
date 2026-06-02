@@ -9,7 +9,7 @@ const el = id => document.getElementById(id);
 
 export async function initBattleScreen(matchId, questions, match, callbacks) {
   _matchId=matchId; _questions=questions; _match=match; _cb=callbacks||{};
-  _userAnswers={}; _currentIndex=0; _timeLeft=360; _answered=false;
+  _userAnswers={}; _currentIndex=0; _timeLeft=150; _answered=false;
 
   // Show who you're battling
   const user = (await import('../state/store.js')).getCurrentUser();
