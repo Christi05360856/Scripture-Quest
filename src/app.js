@@ -27,13 +27,18 @@ import { getCurrentWeekId, getDisplayWeek,
          getTimeUntilNextWeek, formatCountdown } from './utils/week.js';
 import { LAST_SEEN_WEEK, SCORE_PASS_THRESHOLD } from './utils/constants.js';
 import { AVATARS, mountAvatar, renderAvatarSVG } from './components/avatar.js';
-import { createChallenge, getChallengeByCode, acceptChallenge,
-         listenToMatch, getMatchResult, sendRematch,
-         generateWhatsAppLink, getChallengeCodeFromURL,
-         getUserMatches } from './services/match.service.js';
 import {
-  createChallenge, acceptChallenge, getMatchByCode,
-  getChallengeCodeFromURL, clearChallengeFromURL
+  createChallenge,
+  getChallengeByCode,
+  getMatchByCode,
+  acceptChallenge,
+  listenToMatch,
+  getMatchResult,
+  sendRematch,
+  generateWhatsAppLink,
+  getChallengeCodeFromURL,
+  clearChallengeFromURL,
+  getUserMatches
 } from './services/match.service.js';
 import { saveAvatar, getAvatarId, getAvatarLabel } from './services/avatar.service.js';
 
@@ -70,10 +75,17 @@ let _pendingChallengeCode = null; // from URL param
 let _currentChallenge   = null;  // active challenge data
 let _localQuestionsCache = null; // cached for challenges
 
+
+
 // ============================================
 // SCREEN MANAGEMENT
 // ============================================
 const SCREENS = ['loading','landing','quiz','result','leaderboard','rewards','profile','settings','battle'];
+
+function setBattleFabVisible(visible) {
+  const fab = document.getElementById('battle-fab');
+  if (fab) fab.classList.toggle('hidden', !visible);
+}
 
 function showScreen(name) {
   SCREENS.forEach(id => {
@@ -1210,7 +1222,9 @@ async function handleIncomingChallenge(code) {
   }
 }
 
+// In startBattle() — show FAB when battle begins:
 async function startBattle(matchId, questions, match) {
+  setBattleFabVisible(true);   // ← ADD THIS LINE
   const { initBattleScreen } = await import('./pages/battle.page.js');
   showScreen('battle');
   await initBattleScreen(matchId, questions, match, {
@@ -1231,11 +1245,14 @@ function handleBattleWaiting(matchId) {
   });
 }
 
+// In handleBattleComplete() — hide FAB when battle ends:
 async function handleBattleComplete(match) {
+  setBattleFabVisible(false);  // ← ADD THIS LINE
   if (_matchUnsubscribe) { _matchUnsubscribe(); _matchUnsubscribe = null; }
   showScreen('battle-result');
   renderBattleResult(match);
 }
+
 
 function renderBattleResult(match) {
   const user      = getCurrentUser();
