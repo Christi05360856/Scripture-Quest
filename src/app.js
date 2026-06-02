@@ -28,6 +28,8 @@ import { getCurrentWeekId, getDisplayWeek,
          getTimeUntilNextWeek, formatCountdown } from './utils/week.js';
 import { LAST_SEEN_WEEK, SCORE_PASS_THRESHOLD } from './utils/constants.js';
 import { AVATARS, mountAvatar, renderAvatarSVG } from './components/avatar.js';
+
+// ✅ FIXED: Single consolidated import from match.service.js
 import {
   createChallenge,
   getChallengeByCode,
@@ -41,6 +43,7 @@ import {
   clearChallengeFromURL,
   getUserMatches
 } from './services/match.service.js';
+
 import { saveAvatar, getAvatarId, getAvatarLabel } from './services/avatar.service.js';
 
 // Local questions pool — loaded lazily
@@ -70,10 +73,10 @@ async function getQuizPage() {
 
 // Active local session storage (for local quiz submit)
 let _activeLocalSession = null;
-let _selectedAvatarId   = null; // temp selection in modal
-let _pendingChallengeCode = null; // from URL param
-let _currentChallenge   = null;  // active challenge data
-let _localQuestionsCache = null; // cached for challenges
+let _selectedAvatarId   = null;
+let _pendingChallengeCode = null;
+let _currentChallenge   = null;
+let _localQuestionsCache = null;
 
 
 // ============================================
