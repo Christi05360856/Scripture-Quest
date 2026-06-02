@@ -25,6 +25,16 @@ import { showToast }                           from './utils/toast.js';
 import { getCurrentWeekId, getDisplayWeek,
          getTimeUntilNextWeek, formatCountdown } from './utils/week.js';
 import { LAST_SEEN_WEEK, SCORE_PASS_THRESHOLD } from './utils/constants.js';
+import { AVATARS, mountAvatar, renderAvatarSVG } from './components/avatar.js';
+import { createChallenge, getChallengeByCode, acceptChallenge,
+         listenToMatch, getMatchResult, sendRematch,
+         generateWhatsAppLink, getChallengeCodeFromURL,
+         getUserMatches } from './services/match.service.js';
+import {
+  createChallenge, acceptChallenge, getMatchByCode,
+  getChallengeCodeFromURL, clearChallengeFromURL
+} from './services/match.service.js';
+import { saveAvatar, getAvatarId, getAvatarLabel } from './services/avatar.service.js';
 
 // Local questions pool — loaded lazily
 let _localQuestions = null;
@@ -54,11 +64,15 @@ async function getQuizPage() {
 
 // Active local session storage (for local quiz submit)
 let _activeLocalSession = null;
+let _selectedAvatarId   = null; // temp selection in modal
+let _pendingChallengeCode = null; // from URL param
+let _currentChallenge   = null;  // active challenge data
+let _localQuestionsCache = null; // cached for challenges
 
 // ============================================
 // SCREEN MANAGEMENT
 // ============================================
-const SCREENS = ['loading','landing','quiz','result','leaderboard','rewards','profile','settings'];
+const SCREENS = ['loading','landing','quiz','result','leaderboard','rewards','profile','settings','battle'];
 
 function showScreen(name) {
   SCREENS.forEach(id => {
@@ -67,7 +81,7 @@ function showScreen(name) {
   });
 
   const nav    = document.getElementById('bottom-nav');
-  const noNav  = ['loading','quiz','result'];
+  const noNav  = ['loading','quiz','result','battle'];
   if (nav) nav.classList.toggle('hidden', noNav.includes(name));
 
   document.querySelectorAll('.nav-item').forEach(btn => {
@@ -81,8 +95,8 @@ function showScreen(name) {
   if (name === 'profile')     initProfileScreen();
   if (name === 'landing')     initLandingScreen();
   if (name === 'settings')    initSettingsScreen();
+  if (name === 'challenge')   initChallengeScreen();
 }
-
 // ============================================
 // AUTH LISTENER
 // ============================================
@@ -90,17 +104,45 @@ initAuthListener(
   async (user, profile, stats) => {
     await initTheme(profile);
     checkNewWeek();
-    showScreen('landing');
-    initLandingScreen();
+
+    // Check for challenge code in URL (from WhatsApp link)
+    const code = getChallengeCodeFromURL();
+    if (code) {
+      _pendingChallengeCode = code;
+      clearChallengeFromURL();
+      showScreen('landing');
+      initLandingScreen();
+      setTimeout(() => showChallengeAcceptModal(code), 800);
+    } else {
+      showScreen('landing');
+      initLandingScreen();
+    }
   },
   () => {
     initTheme(null);
+
+    // Check for challenge code — store it, prompt login
+    const code = getChallengeCodeFromURL();
+    if (code) {
+      _pendingChallengeCode = code;
+      clearChallengeFromURL();
+      localStorage.setItem('sq_pending_challenge', code);
+    }
+
     showScreen('landing');
     document.getElementById('auth-section')?.classList.remove('hidden');
     document.getElementById('welcome-section')?.classList.add('hidden');
     document.getElementById('bottom-nav')?.classList.add('hidden');
+
+    if (code) {
+      setTimeout(() => {
+        showToast('Sign in or register to accept the challenge!', 'info', 5000);
+        openAuthModal();
+      }, 600);
+    }
   }
 );
+
 // ============================================
 // LANDING SCREEN
 // ============================================
@@ -188,8 +230,7 @@ function startLimitCountdown(nextTime) {
   }
   update();
   _limitTimer = setInterval(update, 1000);
-}
-
+  }
 // ============================================
 // NEW WEEK CHECK
 // ============================================
@@ -206,6 +247,7 @@ function checkNewWeek() {
   }
   localStorage.setItem(LAST_SEEN_WEEK, currentWeekId);
 }
+
 // ============================================
 // LEADERBOARD SCREEN
 // ============================================
@@ -279,9 +321,11 @@ function initProfileScreen() {
   const el = id => document.getElementById(id);
 
   const name     = profile?.displayName || user.displayName || 'User';
-  const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 
-  if (el('profile-avatar')) el('profile-avatar').textContent = initials;
+  // Mount SVG avatar instead of initials
+  const avatarId = getAvatarId(profile);
+  _selectedAvatarId = avatarId;
+  mountAvatar(avatarId, el('profile-avatar'));
   if (el('profile-name'))   el('profile-name').textContent   = name;
   if (el('profile-email'))  el('profile-email').textContent  = user.email || '';
   if (el('profile-role'))   el('profile-role').textContent   = profile?.role || 'User';
@@ -310,8 +354,8 @@ function initProfileScreen() {
     if (contactDisplay) contactDisplay.classList.add('hidden');
     if (el('profile-phone'))   el('profile-phone').value   = profile?.phoneNumber || '';
     if (el('profile-network')) el('profile-network').value = profile?.networkProvider || '';
-  }
-    // Use stats if available, otherwise use empty defaults
+           }
+         // Use stats if available, otherwise use empty defaults
   const safeStats = stats || {
     totalXp: 0, level: 1, currentLevelXp: 0,
     currentStreak: 0, longestStreak: 0,
@@ -420,6 +464,7 @@ function renderAchievements(stats) {
       done: xp >= 2000,
       progress: Math.min(100, (xp / 2000) * 100)
     },
+
     // ── GOLD tier ──
     {
       id: 'quiz50', icon: '🎓', tier: 'gold', crown: '🥇',
@@ -445,8 +490,7 @@ function renderAchievements(stats) {
       done: xp >= 10000,
       progress: Math.min(100, (xp / 10000) * 100)
     },
-
-    // ── LEGENDARY tier ──
+        // ── LEGENDARY tier ──
     {
       id: 'quiz100', icon: '👑', tier: 'legendary', crown: '✨',
       name: 'Legend', req: 'Complete 100 quizzes',
@@ -513,7 +557,8 @@ function renderAchievements(stats) {
         <div class="badges-stat-chip-value">${legCount}</div>
         <div class="badges-stat-chip-label">✨ Legend</div>
       </div>`;
-   }       
+  }
+
   // Render badge cards
   container.innerHTML = BADGES.map(b => `
     <div class="badge-card tier-${b.tier} ${b.done ? 'badge-unlocked' : 'badge-locked'}">
@@ -622,6 +667,7 @@ function handleQuizAbandon() {
   showScreen('landing');
   initLandingScreen();
 }
+
 // ============================================
 // RESULT SCREEN
 // ============================================
@@ -700,7 +746,7 @@ function renderResultChart(correct, wrong) {
     }
   });
 }
-
+      
 // ============================================
 // AUTH MODAL
 // ============================================
@@ -736,6 +782,7 @@ function switchAuthTab(tab) {
   document.getElementById('tab-login')?.classList.toggle('active',     isLogin);
   document.getElementById('tab-register')?.classList.toggle('active', !isLogin);
 }
+
 // ============================================
 // CONFIRM MODAL
 // ============================================
@@ -771,6 +818,12 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       await login({ email, password: pass });
       closeAuthModal();
+      // Check for pending challenge from before login
+      const pending = localStorage.getItem('sq_pending_challenge');
+      if (pending) {
+        localStorage.removeItem('sq_pending_challenge');
+        setTimeout(() => showChallengeAcceptModal(pending), 500);
+      }
     } catch (err) {
       showAuthMessage(getAuthErrorMessage(err.code));
       btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
@@ -789,6 +842,12 @@ document.addEventListener('DOMContentLoaded', () => {
       await register({ name, email, password: pass });
       closeAuthModal();
       showToast(`Welcome to ScriptureQuest, ${name.split(' ')[0]}! 🎉`, 'success', 4000);
+      // Check for pending challenge
+      const pending = localStorage.getItem('sq_pending_challenge');
+      if (pending) {
+        localStorage.removeItem('sq_pending_challenge');
+        setTimeout(() => showChallengeAcceptModal(pending), 1200);
+      }
     } catch (err) {
       showAuthMessage(getAuthErrorMessage(err.code));
       btn.disabled = false; btn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
@@ -833,7 +892,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.profile-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => switchProfileTab(btn.dataset.tab));
   });
-      
+
   // Profile contact save
   document.getElementById('save-contact-btn')?.addEventListener('click', async () => {
     const user    = getCurrentUser();
@@ -856,7 +915,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save Contact Info';
     }
   });
-
+         
   // Theme pref buttons (in profile)
   document.querySelectorAll('.theme-pref-btn').forEach(btn => {
     btn.addEventListener('click', () => { setTheme(btn.dataset.theme); initProfileScreen(); });
@@ -944,6 +1003,380 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
+// CHALLENGE SYSTEM
+// ============================================
+
+let _challengeWhatsappUrl = null;
+
+function openChallengeModal() {
+  const user = getCurrentUser();
+  if (!user) { openAuthModal(); return; }
+
+  // Reset modal state
+  const codeBox      = document.getElementById('challenge-code-box');
+  const createActions = document.getElementById('challenge-create-actions');
+  const shareActions  = document.getElementById('challenge-share-actions');
+  if (codeBox)      codeBox.classList.add('hidden');
+  if (createActions) createActions.classList.remove('hidden');
+  if (shareActions)  shareActions.classList.add('hidden');
+
+  document.getElementById('challenge-create-modal')?.classList.remove('hidden');
+}
+
+function closeChallengeModal() {
+  document.getElementById('challenge-create-modal')?.classList.add('hidden');
+  _challengeWhatsappUrl = null;
+}
+
+async function generateChallenge() {
+  const btn = document.getElementById('generate-challenge-btn');
+  btn.disabled    = true;
+  btn.textContent = 'Generating…';
+
+  try {
+    // Get questions
+    if (!_localQuestionsCache) {
+      _localQuestionsCache = await getLocalQuestions();
+    }
+
+    if (!_localQuestionsCache.length) {
+      throw new Error('No questions available yet. Add questions first.');
+           }
+           const result = await createChallenge(_localQuestionsCache);
+    _challengeWhatsappUrl = result.whatsappUrl;
+    _currentChallenge     = result;
+
+    // Show code
+    const codeDisplay = document.getElementById('challenge-code-display');
+    const codeBox     = document.getElementById('challenge-code-box');
+    if (codeDisplay) codeDisplay.textContent = result.code;
+    if (codeBox)     codeBox.classList.remove('hidden');
+
+    // Show share buttons
+    document.getElementById('challenge-create-actions')?.classList.add('hidden');
+    document.getElementById('challenge-share-actions')?.classList.remove('hidden');
+
+    // Wire WhatsApp button
+    const waBtn = document.getElementById('whatsapp-share-btn');
+    if (waBtn) {
+      waBtn.onclick = () => window.open(result.whatsappUrl, '_blank');
+    }
+
+    showToast(`Challenge created! Code: ${result.code}`, 'success', 5000);
+  } catch (err) {
+    showToast(err.message, 'error');
+    btn.disabled    = false;
+    btn.innerHTML   = '<i class="fas fa-bolt"></i> Generate Challenge Link';
+  }
+}
+
+function showChallengeAcceptModal(code = '') {
+  const input = document.getElementById('challenge-code-input');
+  if (input && code) input.value = code.toUpperCase();
+  document.getElementById('challenge-accept-modal')?.classList.remove('hidden');
+}
+
+function closeChallengeAcceptModal() {
+  document.getElementById('challenge-accept-modal')?.classList.add('hidden');
+}
+
+async function acceptChallengeByCode() {
+  const input = document.getElementById('challenge-code-input');
+  const code  = input?.value?.trim().toUpperCase();
+  if (!code) return showToast('Please enter a challenge code', 'error');
+
+  const btn = document.getElementById('accept-challenge-btn');
+  btn.disabled    = true;
+  btn.textContent = 'Accepting…';
+
+  try {
+    // Get local questions for the battle
+    if (!_localQuestionsCache) {
+      _localQuestionsCache = await getLocalQuestions();
+    }
+
+    const { matchId, match } = await acceptChallenge(code);
+
+    closeChallengeAcceptModal();
+    showToast(`Challenge accepted! Good luck! ⚔️`, 'success', 3000);
+
+    // Load challenge page and start battle
+    const challengePage = await import('./pages/challenge.page.js');
+    showScreen('battle');
+    await challengePage.initChallengePage(matchId, match, {
+      onDone: (result) => {
+        if (result.action === 'rematch') {
+          openChallengeModal();
+        } else {
+          showScreen('landing');
+          initLandingScreen();
+        }
+      }
+    });
+  } catch (err) {
+    showToast(err.message, 'error');
+    btn.disabled    = false;
+    btn.innerHTML   = '<i class="fas fa-fist-raised"></i> Accept Challenge!';
+  }
+}
+
+// ============================================
+// CHALLENGE SCREEN
+// ============================================
+let _currentMatchId   = null;
+let _currentMatchData = null;
+let _matchUnsubscribe = null;
+let _appUrl = window.location.origin;
+
+async function initChallengeScreen() {
+  // Check if opened from WhatsApp challenge link
+  const code = getChallengeCodeFromURL();
+  if (code) {
+    await handleIncomingChallenge(code);
+    return;
+  }
+  // Show create challenge UI
+  showCreateChallengeUI();
+}
+
+async function showCreateChallengeUI() {
+  document.getElementById('challenge-create-section')?.classList.remove('hidden');
+  document.getElementById('challenge-accept-section')?.classList.add('hidden');
+  document.getElementById('challenge-waiting-section')?.classList.add('hidden');
+
+  // Generate challenge
+  try {
+    const questions = await getLocalQuestions();
+    if (!questions.length) { showToast('Questions not loaded yet','error'); return; }
+    const { matchId, code, expiresAt, questions: qs } = await createChallenge(questions);
+    _currentMatchId   = matchId;
+    _currentMatchData = { questions: qs };
+
+    const codeEl = document.getElementById('challenge-code');
+    if (codeEl) codeEl.textContent = code;
+
+    // WhatsApp button
+    const waBtn = document.getElementById('challenge-whatsapp-btn');
+    if (waBtn) {
+      const profile   = getUserProfile();
+      const name      = profile?.displayName || 'Someone';
+      const waLink    = generateWhatsAppLink(code, name, _appUrl);
+      waBtn.onclick   = () => window.open(waLink, '_blank');
+    }
+
+    // New code button
+    document.getElementById('challenge-new-btn')?.addEventListener('click', showCreateChallengeUI);
+
+    // Listen for opponent accepting
+    if (_matchUnsubscribe) _matchUnsubscribe();
+    _matchUnsubscribe = listenToMatch(matchId, match => {
+      if (match.status === 'active' && match.opponentId) {
+        showToast(`${match.opponentName} accepted your challenge! 🔥`, 'success', 4000);
+        setTimeout(() => startBattle(matchId, match.questions, match), 1500);
+      }
+    });
+  } catch(err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function handleIncomingChallenge(code) {
+  document.getElementById('challenge-create-section')?.classList.add('hidden');
+  document.getElementById('challenge-accept-section')?.classList.remove('hidden');
+  try {
+    const match = await getChallengeByCode(code);
+    if (!match) { showToast('Challenge not found or expired','error'); return; }
+    _currentMatchId   = match.matchId;
+    _currentMatchData = match;
+    const nameEl = document.getElementById('challenge-from-name');
+    if (nameEl) nameEl.textContent = `⚔️ ${match.creatorName} challenged you to a Bible battle!`;
+    // Clear URL param without reload
+    window.history.replaceState({}, document.title, window.location.pathname);
+    document.getElementById('challenge-accept-btn')?.addEventListener('click', async () => {
+      try {
+        const result = await acceptChallenge(match.matchId);
+        startBattle(match.matchId, result.questions, match);
+      } catch(err) { showToast(err.message,'error'); }
+    });
+    document.getElementById('challenge-decline-btn')?.addEventListener('click', () => showScreen('landing'));
+  } catch(err) {
+    showToast('Failed to load challenge','error');
+  }
+}
+
+async function startBattle(matchId, questions, match) {
+  const { initBattleScreen } = await import('./pages/battle.page.js');
+  showScreen('battle');
+  await initBattleScreen(matchId, questions, match, {
+    onComplete: handleBattleComplete,
+    onWaiting:  handleBattleWaiting
+  });
+}
+function handleBattleWaiting(matchId) {
+  showScreen('challenge');
+  document.getElementById('challenge-create-section')?.classList.add('hidden');
+  document.getElementById('challenge-accept-section')?.classList.add('hidden');
+  document.getElementById('challenge-waiting-section')?.classList.remove('hidden');
+  // Keep listening for result
+  if (_matchUnsubscribe) _matchUnsubscribe();
+  _matchUnsubscribe = listenToMatch(matchId, match => {
+    if (match.status === 'completed') handleBattleComplete(match);
+  });
+}
+
+async function handleBattleComplete(match) {
+  if (_matchUnsubscribe) { _matchUnsubscribe(); _matchUnsubscribe = null; }
+  showScreen('battle-result');
+  renderBattleResult(match);
+}
+
+function renderBattleResult(match) {
+  const user      = getCurrentUser();
+  const isCreator = match.creatorId === user?.uid;
+  const myName    = isCreator ? match.creatorName    : match.opponentName;
+  const oppName   = isCreator ? match.opponentName   : match.creatorName;
+  const myPct     = isCreator ? match.creatorPct     : match.opponentPct;
+  const oppPct    = isCreator ? match.opponentPct    : match.creatorPct;
+  const myScore   = isCreator ? match.creatorScore   : match.opponentScore;
+  const oppScore  = isCreator ? match.opponentScore  : match.creatorScore;
+  const myAvatar  = isCreator ? match.creatorAvatar  : match.opponentAvatar;
+  const oppAvatar = isCreator ? match.opponentAvatar : match.creatorAvatar;
+  const total     = match.questions?.length || 15;
+  const winnerId  = match.winnerId;
+  const iWon      = winnerId === user?.uid;
+  const isDraw    = winnerId === 'draw';
+
+  const el = id => document.getElementById(id);
+  if(el('battle-result-icon'))    el('battle-result-icon').textContent    = isDraw?'🤝':iWon?'🏆':'😔';
+  if(el('battle-result-title'))   el('battle-result-title').textContent   = isDraw?"It's a Draw!":iWon?'You Win! 🎉':'You Lost!';
+  if(el('battle-result-sub'))     el('battle-result-sub').textContent     = isDraw?'Well played by both!':iWon?`You beat ${oppName}!`:`${oppName} got you this time!`;
+  if(el('battle-result-my-name')) el('battle-result-my-name').textContent = myName||'You';
+  if(el('battle-result-my-pct'))  el('battle-result-my-pct').textContent  = `${myPct||0}%`;
+  if(el('battle-result-my-score')) el('battle-result-my-score').textContent = `${myScore||0}/${total}`;
+  if(el('battle-result-opp-name')) el('battle-result-opp-name').textContent = oppName||'Opponent';
+  if(el('battle-result-opp-pct'))  el('battle-result-opp-pct').textContent  = `${oppPct||0}%`;
+  if(el('battle-result-opp-score')) el('battle-result-opp-score').textContent = `${oppScore||0}/${total}`;
+  if(el('battle-result-xp'))      el('battle-result-xp').textContent      = `+${iWon?50:isDraw?25:10} XP Battle Bonus!`;
+
+  // Winner highlight
+  const myCard  = el('battle-score-me');
+  const oppCard = el('battle-score-opponent');
+  if (myCard && iWon)    myCard.classList.add('battle-winner');
+  if (oppCard && !iWon && !isDraw) oppCard.classList.add('battle-winner');
+
+  // Mount avatars
+  mountAvatar(myAvatar||'M01',  el('battle-result-my-avatar'));
+  mountAvatar(oppAvatar||'M01', el('battle-result-opp-avatar'));
+
+  // Match thread messages
+  const thread = el('battle-thread');
+  if (thread && match.messages) {
+    thread.innerHTML = match.messages.map(m => `
+      <div style="padding:8px 12px;margin-bottom:6px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);font-size:13px;font-weight:600;color:var(--text-secondary)">
+        ${m.text}
+      </div>`).join('');
+  }
+
+  // Rematch button
+  el('battle-rematch-btn')?.addEventListener('click', async () => {
+    await sendRematch(match.matchId);
+    showToast('Rematch request sent! 🔄','success');
+    showCreateChallengeUI();
+    showScreen('challenge');
+  });
+}
+
+// ============================================
+// AVATAR MODAL
+// ============================================
+
+function openAvatarModal() {
+  const profile = getUserProfile();
+  _selectedAvatarId = getAvatarId(profile);
+
+  // Render grid
+  renderAvatarGrid('all');
+
+  // Show preview of current avatar
+  updateAvatarPreview(_selectedAvatarId);
+
+  document.getElementById('avatar-modal')?.classList.remove('hidden');
+}
+
+function closeAvatarModal() {
+  document.getElementById('avatar-modal')?.classList.add('hidden');
+}
+
+function filterAvatars(gender) {
+  // Update filter buttons
+  document.querySelectorAll('.avatar-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.id === `avatar-filter-${gender}`);
+  });
+  renderAvatarGrid(gender);
+}
+
+function renderAvatarGrid(gender = 'all') {
+  const grid = document.getElementById('avatar-grid');
+  if (!grid) return;
+
+  const filtered = gender === 'all'
+    ? AVATARS
+    : AVATARS.filter(a => a.gender === gender);
+
+  grid.innerHTML = filtered.map(avatar => `
+    <div class="avatar-option ${avatar.id === _selectedAvatarId ? 'selected' : ''}"
+         onclick="SQ.selectAvatar('${avatar.id}')"
+         data-id="${avatar.id}">
+      <div class="avatar-option-img">${avatar.svg()}</div>
+      <div class="avatar-option-label">${avatar.label}</div>
+    </div>`).join('');
+}
+
+function selectAvatar(avatarId) {
+  _selectedAvatarId = avatarId;
+
+  // Update selection highlight
+  document.querySelectorAll('.avatar-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.id === avatarId);
+  });
+        // Update preview
+  updateAvatarPreview(avatarId);
+}
+
+function updateAvatarPreview(avatarId) {
+  const previewEl = document.getElementById('avatar-preview-circle');
+  const nameEl    = document.getElementById('avatar-preview-name');
+  if (previewEl) mountAvatar(avatarId, previewEl);
+  if (nameEl)    nameEl.textContent = getAvatarLabel(avatarId);
+}
+
+async function saveSelectedAvatar() {
+  const btn = document.getElementById('avatar-save-btn');
+  if (!_selectedAvatarId) return;
+  btn.disabled    = true;
+  btn.textContent = 'Saving…';
+  try {
+    await saveAvatar(_selectedAvatarId);
+    // Update profile header immediately
+    mountAvatar(_selectedAvatarId, document.getElementById('profile-avatar'));
+    closeAvatarModal();
+    showToast('Avatar updated! 🎭', 'success');
+  } catch (err) {
+    showToast('Failed to save avatar', 'error');
+  } finally {
+    btn.disabled  = false;
+    btn.innerHTML = '<i class="fas fa-check"></i> Save Avatar';
+  }
+}
+
+// ============================================
 // GLOBAL SQ NAMESPACE
 // ============================================
-window.SQ = { switchAuthTab, closeAuthModal, showConfirm, showScreen, showToast };   
+window.SQ = {
+  switchAuthTab, closeAuthModal, showConfirm, showScreen, showToast,
+  openAvatarModal, closeAvatarModal, filterAvatars, selectAvatar, saveSelectedAvatar,
+  challengeUser(uid, name) {
+    showToast(`Opening battle screen...`,'info',1500);
+    showScreen('challenge');
+  }
+};  
