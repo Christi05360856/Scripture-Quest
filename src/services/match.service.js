@@ -37,6 +37,9 @@ export async function getChallengeByCode(code) {
   return { matchId:d.id, ...d.data() };
 }
 
+// Alias for getChallengeByCode (used in some parts of app.js)
+export const getMatchByCode = getChallengeByCode;
+
 export async function acceptChallenge(matchId) {
   const user = auth.currentUser;
   if (!user) throw new Error('You must be logged in.');
@@ -110,8 +113,24 @@ export function generateWhatsAppLink(code, challengerName, appUrl) {
   return `https://wa.me/?text=${msg}`;
 }
 
+/**
+ * Read ?challenge=CODE from the current URL.
+ * Returns the code string or null.
+ */
 export function getChallengeCodeFromURL() {
   return new URLSearchParams(window.location.search).get('challenge') || null;
+}
+
+/**
+ * Remove the ?challenge= param from the URL without triggering a page reload.
+ * app.js calls this after reading the code so the param doesn't persist.
+ */
+export function clearChallengeFromURL() {
+  const url = new URL(window.location.href);
+  if (url.searchParams.has('challenge')) {
+    url.searchParams.delete('challenge');
+    window.history.replaceState({}, document.title, url.pathname + (url.search || ''));
+  }
 }
 
 export async function getUserMatches(userId) {
@@ -127,4 +146,4 @@ export async function getUserMatches(userId) {
   } catch { return []; }
 }
 
-export default { createChallenge, getChallengeByCode, acceptChallenge, submitBattleAnswers, getMatchResult, listenToMatch, sendRematch, generateWhatsAppLink, getChallengeCodeFromURL, getUserMatches };
+export default { createChallenge, getChallengeByCode, getMatchByCode, acceptChallenge, submitBattleAnswers, getMatchResult, listenToMatch, sendRematch, generateWhatsAppLink, getChallengeCodeFromURL, clearChallengeFromURL, getUserMatches };
