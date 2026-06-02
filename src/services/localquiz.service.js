@@ -34,6 +34,22 @@ export async function isCloudFunctionsAvailable() {
   }
 }
 
+// ── Fetch questions from Firestore (admin-added questions) ──
+async function getQuestionsPool(fallbackArray) {
+  try {
+    const { collection, getDocs, query, where } = await import('firebase/firestore');
+    const { db } = await import('../firebase/config.js');
+    const snap = await getDocs(query(collection(db,'questions'), where('isActive','==',true)));
+    if (snap.size > 0) {
+      const qs = [];
+      snap.forEach(d => qs.push({ id:d.id, ...d.data() }));
+      console.log('[LocalQuiz] Using', qs.length, 'Firestore questions');
+      return qs;
+    }
+  } catch(e) { console.warn('[LocalQuiz] Firestore questions fetch failed, using local:', e.message); }
+  return fallbackArray;
+}
+
 // ── Create a local quiz session (no Cloud Function needed) ──
 export async function createLocalQuizSession(questionsArray) {
   const user = auth.currentUser;
@@ -56,8 +72,9 @@ export async function createLocalQuizSession(questionsArray) {
     throw new Error(`Daily limit reached. Come back in ${formatMs(msLeft)}!`);
   }
 
-  // Shuffle and pick questions
-  const pool     = shuffleArray([...questionsArray]);
+  // Use Firestore questions if available, fall back to local
+  const fullPool = await getQuestionsPool(questionsArray);
+  const pool     = shuffleArray([...fullPool]);
   const selected = pool.slice(0, TOTAL_QUESTIONS);
   const expiresAt = Date.now() + QUIZ_DURATION_SECS * 1000;
   const sessionId = `local_${user.uid}_${Date.now()}`;
@@ -178,12 +195,12 @@ export async function submitLocalQuizSession(sessionId, userAnswers, questions) 
         updatedAt: serverTimestamp()
       }, { merge: true });
 
-    // Mark session complete
-    await setDoc(doc(db, 'quizSessions', sessionId), {
+    // Mark session complete (non-blocking — don't hang if it fails)
+    setDoc(doc(db, 'quizSessions', sessionId), {
       completed: true, validated: true,
       submittedAt: serverTimestamp(),
       answers: userAnswers, score, percentage, xpEarned
-    }, { merge: true });
+    }, { merge: true }).catch(e => console.warn('[LocalQuiz] Session update failed:', e.message));
 
   } catch (e) {
     console.error('[LocalQuiz] Write error:', e.message);
