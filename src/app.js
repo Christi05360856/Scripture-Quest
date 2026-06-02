@@ -9,6 +9,7 @@ import { initAuthListener, login, register,
          logout, updateProfile_,
          resetPassword, getAuthErrorMessage } from './services/auth.service.js';
 import { initTheme, setTheme, toggleTheme }   from './services/theme.service.js';
+import { checkAndShowAnnouncements }           from './services/notification.service.js';
 import { checkDailyLimit, loadQuizStateFromStorage,
          clearQuizStorage, createQuizSession,
          saveQuizStateToStorage, hasResumableQuiz } from './services/quiz.service.js';
@@ -26,18 +27,13 @@ import { getCurrentWeekId, getDisplayWeek,
          getTimeUntilNextWeek, formatCountdown } from './utils/week.js';
 import { LAST_SEEN_WEEK, SCORE_PASS_THRESHOLD } from './utils/constants.js';
 import { AVATARS, mountAvatar, renderAvatarSVG } from './components/avatar.js';
+import { createChallenge, getChallengeByCode, acceptChallenge,
+         listenToMatch, getMatchResult, sendRematch,
+         generateWhatsAppLink, getChallengeCodeFromURL,
+         getUserMatches } from './services/match.service.js';
 import {
-  createChallenge,
-  getChallengeByCode,
-  getMatchByCode,
-  acceptChallenge,
-  listenToMatch,
-  getMatchResult,
-  sendRematch,
-  generateWhatsAppLink,
-  getChallengeCodeFromURL,
-  clearChallengeFromURL,
-  getUserMatches
+  createChallenge, acceptChallenge, getMatchByCode,
+  getChallengeCodeFromURL, clearChallengeFromURL
 } from './services/match.service.js';
 import { saveAvatar, getAvatarId, getAvatarLabel } from './services/avatar.service.js';
 
@@ -102,6 +98,7 @@ function showScreen(name) {
   if (name === 'settings')    initSettingsScreen();
   if (name === 'challenge')   initChallengeScreen();
 }
+
 // ============================================
 // AUTH LISTENER
 // ============================================
@@ -235,7 +232,8 @@ function startLimitCountdown(nextTime) {
   }
   update();
   _limitTimer = setInterval(update, 1000);
-  }
+}
+
 // ============================================
 // NEW WEEK CHECK
 // ============================================
@@ -359,8 +357,9 @@ function initProfileScreen() {
     if (contactDisplay) contactDisplay.classList.add('hidden');
     if (el('profile-phone'))   el('profile-phone').value   = profile?.phoneNumber || '';
     if (el('profile-network')) el('profile-network').value = profile?.networkProvider || '';
-           }
-         // Use stats if available, otherwise use empty defaults
+  }
+
+  // Use stats if available, otherwise use empty defaults
   const safeStats = stats || {
     totalXp: 0, level: 1, currentLevelXp: 0,
     currentStreak: 0, longestStreak: 0,
@@ -495,7 +494,8 @@ function renderAchievements(stats) {
       done: xp >= 10000,
       progress: Math.min(100, (xp / 10000) * 100)
     },
-        // ── LEGENDARY tier ──
+
+    // ── LEGENDARY tier ──
     {
       id: 'quiz100', icon: '👑', tier: 'legendary', crown: '✨',
       name: 'Legend', req: 'Complete 100 quizzes',
@@ -751,7 +751,7 @@ function renderResultChart(correct, wrong) {
     }
   });
 }
-      
+
 // ============================================
 // AUTH MODAL
 // ============================================
@@ -920,7 +920,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save Contact Info';
     }
   });
-         
+
   // Theme pref buttons (in profile)
   document.querySelectorAll('.theme-pref-btn').forEach(btn => {
     btn.addEventListener('click', () => { setTheme(btn.dataset.theme); initProfileScreen(); });
@@ -1046,8 +1046,9 @@ async function generateChallenge() {
 
     if (!_localQuestionsCache.length) {
       throw new Error('No questions available yet. Add questions first.');
-           }
-           const result = await createChallenge(_localQuestionsCache);
+    }
+
+    const result = await createChallenge(_localQuestionsCache);
     _challengeWhatsappUrl = result.whatsappUrl;
     _currentChallenge     = result;
 
@@ -1217,6 +1218,7 @@ async function startBattle(matchId, questions, match) {
     onWaiting:  handleBattleWaiting
   });
 }
+
 function handleBattleWaiting(matchId) {
   showScreen('challenge');
   document.getElementById('challenge-create-section')?.classList.add('hidden');
@@ -1344,7 +1346,8 @@ function selectAvatar(avatarId) {
   document.querySelectorAll('.avatar-option').forEach(opt => {
     opt.classList.toggle('selected', opt.dataset.id === avatarId);
   });
-        // Update preview
+
+  // Update preview
   updateAvatarPreview(avatarId);
 }
 
@@ -1384,4 +1387,4 @@ window.SQ = {
     showToast(`Opening battle screen...`,'info',1500);
     showScreen('challenge');
   }
-};  
+};
