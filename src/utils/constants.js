@@ -5,10 +5,11 @@
 
 // ── Quiz ──
 export const TOTAL_QUESTIONS    = 15;
-export const QUIZ_DURATION_SECS = 6 * 60;       // 6 minutes
+export const QUIZ_DURATION_SECS = 3 * 60 + 30; // 3:30       // 6 minutes
 export const MAX_QUIZZES_PER_DAY = 2;
 export const QUESTION_COOLDOWN_DAYS = 7;
 export const SESSION_MAX_AGE_HOURS  = 12;
+export const BATTLE_DURATION_SECS  = 2 * 60 + 30; // 2:30 for challenges
 
 // ── Scoring ──
 export const POINTS_PER_CORRECT    = 10;
