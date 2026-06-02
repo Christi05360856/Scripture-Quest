@@ -124,7 +124,6 @@
   color: var(--text-muted);
   font-weight: 500;
 }
-
 /* ============================================
    AUTH MODAL
    ============================================ */
@@ -174,7 +173,6 @@
 
 .auth-error.error   { background: var(--error-bg);   color: var(--error-text);   border: 1px solid var(--error-border); }
 .auth-error.success { background: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); }
-
 
 /* ============================================
    QUIZ SCREEN
@@ -241,8 +239,7 @@
   color: var(--text-primary);
   line-height: 1.65;
   margin-bottom: var(--space-6);
-}
-
+   }
 /* Options */
 .options-list {
   display: flex;
@@ -272,6 +269,7 @@
   background: var(--option-hover-bg);
   transform: translateX(4px);
 }
+
 .option-letter {
   display: flex;
   align-items: center;
@@ -361,6 +359,7 @@
 
 .feedback-area.correct-fb .feedback-msg { color: var(--success-text); }
 .feedback-area.wrong-fb   .feedback-msg { color: var(--error-text); }
+
 /* Nav controls */
 .nav-controls {
   display: flex;
@@ -378,8 +377,7 @@
   border-radius: var(--radius-full);
   margin-bottom: var(--space-3);
   overflow: hidden;
-}
-
+   }
 .quiz-progress-fill {
   height: 100%;
   background: var(--accent-gradient);
@@ -453,6 +451,7 @@
 
 .score-badge.pass { background: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); }
 .score-badge.fail { background: var(--error-bg);   color: var(--error-text);   border: 1px solid var(--error-border); }
+
 .xp-earned {
   font-size: var(--text-xl);
   font-weight: 800;
@@ -545,7 +544,6 @@
   flex-shrink: 0;
   color: var(--text-primary);
 }
-
 .lb-name {
   flex: 1;
   font-weight: 700;
@@ -671,6 +669,7 @@
   border-color: var(--success-border);
   box-shadow: 0 4px 12px rgba(34,197,94,0.12);
 }
+
 .reward-tier--claimed {
   background: var(--warning-bg);
   border-color: var(--warning-border);
@@ -727,7 +726,7 @@
 .weekly-medal { font-size: 32px; }
 .weekly-label { font-size: var(--text-sm); font-weight: 800; color: var(--warning-text); }
 .weekly-note  { font-size: var(--text-xs); color: var(--warning-text); text-align: center; font-weight: 500; opacity: 0.85; }
-
+   
 /* ============================================
    PROFILE SCREEN
    ============================================ */
@@ -771,6 +770,7 @@
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
+
 /* Contact details */
 .contact-section {
   margin: var(--space-5) 0;
@@ -859,7 +859,7 @@
 }
 
 .week-banner-dismiss:hover { background: rgba(255,255,255,0.3); transform: none; }
-
+   
 /* ============================================
    FIXED LOGOUT BUTTON
    ============================================ */
@@ -881,7 +881,8 @@
 }
 
 .fixed-logout:hover { background: var(--error-border); }
-  /* ============================================
+
+/* ============================================
    SKELETON LOADERS
    ============================================ */
 
@@ -1028,8 +1029,7 @@
 .settings-row-text { flex:1; }
 .settings-row-title { font-size:15px; font-weight:700; color:var(--text-primary); }
 .settings-row-sub   { font-size:12px; color:var(--text-muted); margin-top:2px; font-weight:600; }
-
-/* Toggle switch */
+     /* Toggle switch */
 .toggle-switch {
   position:relative; width:48px; height:26px; flex-shrink:0; cursor:pointer;
 }
@@ -1076,6 +1076,7 @@
   --tier-legendary-bg:  rgba(155,89,182,0.15);
   --tier-legendary-border: rgba(155,89,182,0.5);
 }
+
 /* ── Badges Section Header ── */
 .badges-section-header {
   display: flex;
@@ -1253,8 +1254,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-}
-
+   }
 .badge-card.tier-bronze .badge-tier-label  { background: var(--tier-bronze-bg);  color: var(--tier-bronze); }
 .badge-card.tier-silver .badge-tier-label  { background: var(--tier-silver-bg);  color: var(--tier-silver); }
 .badge-card.tier-gold   .badge-tier-label  { background: var(--tier-gold-bg);    color: var(--tier-gold); }
@@ -1347,3 +1347,488 @@
 .chip-silver  .badges-stat-chip-value { color: var(--tier-silver); }
 .chip-gold    .badges-stat-chip-value { color: var(--tier-gold); }
 .chip-legendary .badges-stat-chip-value { color: var(--tier-legendary); }
+
+/* ============================================
+   AVATAR SYSTEM
+   ============================================ */
+
+/* Profile avatar — replaces initials circle */
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--accent-primary);
+  box-shadow: var(--shadow-md);
+  background: var(--bg-subtle);
+  cursor: pointer;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  flex-shrink: 0;
+}
+
+.profile-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+}
+
+.profile-avatar svg {
+  width: 100%;
+  height: 100%;
+}
+
+.profile-avatar-edit-hint {
+  font-size: 11px;
+  color: var(--accent-primary);
+  font-weight: 700;
+  text-align: center;
+  margin-top: 4px;
+  cursor: pointer;
+}
+
+/* Small avatar (leaderboard rows) */
+.avatar-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  background: var(--bg-subtle);
+  flex-shrink: 0;
+}
+
+.avatar-sm svg { width: 100%; height: 100%; }
+/* ── Avatar Selector Modal ── */
+.avatar-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--surface-modal);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: fadeIn 0.2s ease;
+}
+
+.avatar-modal-sheet {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  width: 100%;
+  max-width: 720px;
+  max-height: 88vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+  border: 1px solid var(--border);
+  border-bottom: none;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.avatar-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 0;
+  flex-shrink: 0;
+}
+
+.avatar-modal-title {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text-primary);
+}
+
+.avatar-modal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+  padding: 0;
+  box-shadow: none;
+  transform: none;
+}
+
+.avatar-modal-close:hover {
+  background: var(--error-bg);
+  color: var(--error);
+  transform: none;
+  box-shadow: none;
+}
+
+/* Gender filter tabs */
+.avatar-filter-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px 20px 12px;
+  flex-shrink: 0;
+}
+
+.avatar-filter-btn {
+  flex: 1;
+  padding: 9px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all var(--transition-base);
+  box-shadow: none;
+  transform: none;
+}
+
+.avatar-filter-btn:hover  { border-color: var(--accent-primary); color: var(--accent-primary); transform: none; box-shadow: none; }
+.avatar-filter-btn.active { background: var(--accent-gradient); color: white; border-color: transparent; }
+
+/* Selected preview */
+.avatar-selected-preview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  background: var(--bg-subtle);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.avatar-preview-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--accent-primary);
+  background: var(--bg-card);
+  flex-shrink: 0;
+}
+
+.avatar-preview-circle svg { width: 100%; height: 100%; }
+
+.avatar-preview-info { flex: 1; }
+.avatar-preview-name { font-size: 16px; font-weight: 800; color: var(--text-primary); }
+.avatar-preview-role { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+
+/* Avatar grid */
+.avatar-grid-scroll {
+  overflow-y: auto;
+  padding: 16px 20px;
+  flex: 1;
+}
+
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+@media(max-width: 360px) {
+  .avatar-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.avatar-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 6px;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border);
+  background: var(--bg-subtle);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.avatar-option:hover {
+  border-color: var(--accent-primary);
+  background: var(--bg-card);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.avatar-option.selected {
+  border-color: var(--accent-primary);
+  background: var(--info-bg);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+}
+
+.avatar-option-img {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  background: var(--bg-card);
+}
+
+.avatar-option-img svg { width: 100%; height: 100%; }
+
+.avatar-option.selected .avatar-option-img {
+  border-color: var(--accent-primary);
+}
+
+.avatar-option-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+}
+
+.avatar-option.selected .avatar-option-label {
+  color: var(--accent-primary);
+}
+
+/* Save button */
+.avatar-save-bar {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--bg-card);
+}
+/* ============================================
+   CHALLENGE / BATTLE SYSTEM
+   ============================================ */
+
+/* Battle top bar */
+.battle-top-bar {
+  flex-wrap: nowrap !important;
+  justify-content: space-between;
+}
+
+.battle-players {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.battle-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.battle-player-name {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.battle-vs {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--accent-warm);
+  flex-shrink: 0;
+}
+
+/* Challenge button on leaderboard rows */
+.lb-challenge-btn {
+  background: var(--accent-gradient);
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all var(--transition-base);
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.lb-challenge-btn:hover {
+  filter: brightness(1.1);
+  transform: none;
+  box-shadow: none;
+}
+
+/* Challenge code box */
+.challenge-code-large {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: var(--accent-primary);
+  text-align: center;
+  padding: 16px;
+  background: var(--bg-subtle);
+  border: 2px dashed var(--accent-primary);
+  border-radius: var(--radius-lg);
+  margin: 12px 0;
+}
+
+/* Accept challenge auto-detected banner */
+.challenge-detected-banner {
+  background: var(--accent-gradient);
+  color: white;
+  padding: 12px 20px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-banner);
+  animation: slideDown 0.4s ease;
+  cursor: pointer;
+}
+
+/* ============================================
+   BATTLE / CHALLENGE STYLES
+   ============================================ */
+
+/* Versus bar */
+.battle-versus-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-3);
+  box-shadow: var(--shadow-sm);
+}
+
+.battle-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.battle-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--accent-primary);
+  background: var(--bg-subtle);
+}
+.battle-avatar svg { width:100%;height:100%; }
+
+.battle-player-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-primary);
+  text-align: center;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.battle-vs-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.battle-vs-badge {
+  background: var(--accent-gradient);
+  color: white;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  letter-spacing: 1px;
+}
+
+.battle-timer {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--timer-text);
+  background: var(--timer-bg);
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  font-variant-numeric: tabular-nums;
+}
+.battle-timer.urgent { color: var(--timer-urgent); animation: pulse 0.8s ease-in-out infinite; }
+
+/* Challenge button on leaderboard rows */
+.lb-challenge-btn {
+  background: var(--accent-gradient);
+  color: white;
+  border: none;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all var(--transition-base);
+  white-space: nowrap;
+  box-shadow: none;
+}
+.lb-challenge-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+/* Battle result score cards */
+.battle-score-grid {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+   }
+   
+.battle-score-card {
+  flex: 1;
+  padding: 16px 10px;
+  background: var(--bg-subtle);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  transition: all var(--transition-base);
+}
+
+.battle-score-card.battle-winner {
+  background: var(--success-bg);
+  border-color: var(--success-border);
+  box-shadow: 0 4px 16px rgba(34,197,94,0.15);
+}
+
+.battle-score-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  background: var(--bg-card);
+  margin: 0 auto 8px;
+}
+.battle-score-avatar svg { width:100%;height:100%; }
+
+.battle-score-name   { font-size:12px;font-weight:800;color:var(--text-primary);margin-bottom:6px; }
+.battle-score-pct    { font-size:28px;font-weight:900;color:var(--accent-primary);line-height:1; }
+.battle-score-detail { font-size:12px;color:var(--text-muted);font-weight:600;margin-top:4px; }
+.battle-score-vs     { font-size:16px;font-weight:900;color:var(--text-muted); }
+
+/* Nav item for Battle tab */
+.nav-item .fa-swords { font-size: 18px; }
