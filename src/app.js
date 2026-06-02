@@ -26,13 +26,18 @@ import { getCurrentWeekId, getDisplayWeek,
          getTimeUntilNextWeek, formatCountdown } from './utils/week.js';
 import { LAST_SEEN_WEEK, SCORE_PASS_THRESHOLD } from './utils/constants.js';
 import { AVATARS, mountAvatar, renderAvatarSVG } from './components/avatar.js';
-import { createChallenge, getChallengeByCode, acceptChallenge,
-         listenToMatch, getMatchResult, sendRematch,
-         generateWhatsAppLink, getChallengeCodeFromURL,
-         getUserMatches } from './services/match.service.js';
 import {
-  createChallenge, acceptChallenge, getMatchByCode,
-  getChallengeCodeFromURL, clearChallengeFromURL
+  createChallenge,
+  getChallengeByCode,
+  getMatchByCode,
+  acceptChallenge,
+  listenToMatch,
+  getMatchResult,
+  sendRematch,
+  generateWhatsAppLink,
+  getChallengeCodeFromURL,
+  clearChallengeFromURL,
+  getUserMatches
 } from './services/match.service.js';
 import { saveAvatar, getAvatarId, getAvatarLabel } from './services/avatar.service.js';
 
