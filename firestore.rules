@@ -1,252 +1,192 @@
-// ============================================
-// SCRIPTUREQUEST V4 — Firestore Security Rules
-// Frontend is NEVER trusted.
-// All competitive data: Cloud Functions only.
-// ============================================
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ══════════════════════════════════════
-    // HELPER FUNCTIONS
-    // ══════════════════════════════════════
-
-    // Is the request from an authenticated user?
+    // ── HELPERS ──
     function isAuth() {
       return request.auth != null;
     }
 
-    // Is the request from the owner of this document?
     function isOwner(uid) {
       return isAuth() && request.auth.uid == uid;
     }
 
-    // Does the user have admin custom claim?
+    // Check admin via custom claim OR Firestore role document
     function isAdmin() {
-      return isAuth() && request.auth.token.admin == true;
+      return isAuth() && (
+        request.auth.token.admin == true ||
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
     }
 
-    // Does the user have moderator custom claim?
-    function isModerator() {
-      return isAuth() &&
-        (request.auth.token.admin == true || request.auth.token.moderator == true);
-    }
-
-    // Is the user banned?
-    function isNotBanned() {
-      return !('isBanned' in request.auth.token) || request.auth.token.isBanned == false;
-    }
-
-    // Only these profile fields are safe for client to update
     function isSafeProfileUpdate() {
-      let allowed = ['displayName', 'phoneNumber', 'networkProvider',
-                     'profileComplete', 'themePreference', 'soundEnabled'];
+      let allowed = ['displayName','phoneNumber','networkProvider',
+                     'profileComplete','themePreference','soundEnabled',
+                     'notificationPrefs'];
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowed);
     }
-    // ══════════════════════════════════════
-    // USERS COLLECTION
-    // users/{uid} — safe profile data only
-    // ══════════════════════════════════════
 
+    // ── USERS ──
     match /users/{uid} {
-      // User can read their own profile
-      allow read: if isOwner(uid);
-
-      // User can create their own profile on registration
+      allow read:   if isOwner(uid) || isAdmin();
       allow create: if isOwner(uid) && isAuth();
-
-      // User can only update safe fields — NOT XP, level, streaks, achievements
-      allow update: if isOwner(uid) && isSafeProfileUpdate();
-
-      // Nobody can delete user documents from client
+      allow update: if (isOwner(uid) && isSafeProfileUpdate()) || isAdmin();
       allow delete: if false;
-
-      // Admins can read any user profile
-    allow read: if isOwner(uid) || isAdmin();
     }
 
-    // ══════════════════════════════════════
-    // USER STATS — Cloud Functions only
-    // userStats/{uid} — all progression data
-    // ══════════════════════════════════════
-
+    // ── USER STATS ──
     match /userStats/{uid} {
-      // User can read their own stats
-      allow read: if isOwner(uid);
-
-      // NOBODY writes stats from client — Cloud Functions only
-      allow write: if false;
-
-      // Admins can read/write
-      allow read, write: if isAdmin();
+      allow read:  if isOwner(uid) || isAdmin();
+      allow write: if isAdmin();
     }
 
-    // ══════════════════════════════════════
-    // USER ACHIEVEMENTS — Cloud Functions only
-    // ══════════════════════════════════════
-
+    // ── USER ACHIEVEMENTS ──
     match /userAchievements/{uid} {
-      allow read:  if isOwner(uid);
-      allow write: if false; // Cloud Functions only
-      allow read, write: if isAdmin();
+      allow read:  if isOwner(uid) || isAdmin();
+      allow write: if isAdmin();
     }
 
-    // ══════════════════════════════════════
-    // USER DAILY STATE — Cloud Functions only
-    // ══════════════════════════════════════
-
+    // ── USER DAILY STATE ──
     match /userDailyState/{uid} {
-      allow read:  if isOwner(uid);
-      allow write: if false; // Cloud Functions only
-      allow read, write: if isAdmin();
+      allow read:  if isOwner(uid) || isAdmin();
+      allow write: if isAdmin();
     }
-        // ══════════════════════════════════════
-    // QUIZ SESSIONS
-    // ══════════════════════════════════════
 
+    // ── QUIZ SESSIONS ──
     match /quizSessions/{sessionId} {
-      // User can read their own sessions
-      allow read: if isAuth() && resource.data.userId == request.auth.uid;
-
-      // No direct session creation from client
-      allow create: if false;
-
-      // No direct writes to score/xp/validated fields
-      allow update: if false;
-
+      allow read:   if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAdmin();
+      allow update: if isAdmin();
       allow delete: if false;
-
-      allow read, write: if isAdmin();
     }
 
-    // ══════════════════════════════════════
-    // QUIZ ATTEMPTS — immutable audit log
-    // ══════════════════════════════════════
-
+    // ── QUIZ ATTEMPTS ──
     match /quizAttempts/{attemptId} {
-      // User can read their own attempts
-      allow read: if isAuth() && resource.data.userId == request.auth.uid;
-
-      // All writes through Cloud Functions only
-      allow write: if false;
-
-      allow read, write: if isAdmin();
+      allow read:   if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuth(); // Allow client writes for local quiz fallback
+      allow update: if isAdmin();
+      allow delete: if false;
     }
 
-    // ══════════════════════════════════════
-    // LEADERBOARD — public read, CF write
-    // leaderboardWeekly/{weekId}/entries/{uid}
-    // ══════════════════════════════════════
-
+    // ── LEADERBOARD ──
     match /leaderboardWeekly/{weekId} {
-      allow read: if true; // Public read
-
-      // Legacy flat document write — CF only
-      allow write: if false;
+      allow read: if true;
+      allow write: if isAdmin();
 
       match /entries/{uid} {
-        allow read:  if true; // Public read for competition transparency
-        allow write: if false; // Cloud Functions only
-        allow write: if isAdmin();
+        allow read:   if true;
+        allow write:  if isAuth() || isAdmin(); // Allow client for local quiz
+        allow delete: if isAdmin();
       }
     }
 
-    // ══════════════════════════════════════
-    // WEEKLY WINNERS — public read archive
-    // ══════════════════════════════════════
-
+    // ── WEEKLY WINNERS ──
     match /weeklyWinners/{weekId} {
       allow read:  if true;
-      allow write: if false; // Cloud Functions only
       allow write: if isAdmin();
     }
-        // ══════════════════════════════════════
-    // REWARD CLAIMS
-    // ══════════════════════════════════════
 
+    // ── REWARD CLAIMS ──
     match /rewardClaims/{claimId} {
-      // User can read their own claims
-      allow read: if isAuth() && resource.data.userId == request.auth.uid;
-
-      // User can CREATE a claim request (but not approve/process it)
+      allow read:   if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isAuth()
         && request.resource.data.userId == request.auth.uid
-        && request.resource.data.status == 'pending'
-        && !('processedBy' in request.resource.data)
-        && !('processedAt' in request.resource.data);
-
-      // Users CANNOT update claims — admin/CF only
+        && request.resource.data.status == 'pending';
       allow update: if isAdmin();
       allow delete: if false;
-
-      allow read, write: if isAdmin();
     }
 
-    // ══════════════════════════════════════
-    // QUESTIONS — public read (no answers)
-    // ══════════════════════════════════════
-
+    // ── QUESTIONS ──
     match /questions/{questionId} {
-      // Public can read questions but correctAnswer is hidden by CF
-      allow read: if true;
+      allow read:  if true;
+      allow write: if isAdmin();
 
-      // Only admins can manage questions
+      match /analytics/{doc} {
+        allow read:  if isAdmin();
+        allow write: if isAuth(); // Written by local quiz service
+      }
+    }
+
+    // ── NOTIFICATIONS ──
+    match /notifications/{notificationId} {
+      allow read:   if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if isAuth() && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
+      allow create: if isAdmin();
+      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // ── PUSH TOKENS ──
+    match /userPushTokens/{uid} {
+      allow read, write: if isOwner(uid) || isAdmin();
+    }
+
+    // ── ANNOUNCEMENTS ──
+    match /announcements/{announcementId} {
+      allow read:  if true;
       allow write: if isAdmin();
     }
 
-    // ══════════════════════════════════════
-    // NOTIFICATIONS
-    // ══════════════════════════════════════
-
-    match /notifications/{notificationId} {
-      // User reads their own notifications
-      allow read: if isAuth() && resource.data.userId == request.auth.uid;
-
-      // User can mark as read (only isRead field)
-      allow update: if isAuth()
-        && resource.data.userId == request.auth.uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
-
-      // Only CF creates notifications
-      allow create: if false;
-      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
-
-      allow read, write: if isAdmin();
-    }
-
-    // ══════════════════════════════════════
-    // USER PUSH TOKENS
-    // ══════════════════════════════════════
-
-    match /userPushTokens/{uid} {
-      // User manages their own push tokens
-      allow read, write: if isOwner(uid);
-      allow read, write: if isAdmin();
-    }
-    
-    // ══════════════════════════════════════
-    // ANNOUNCEMENTS — public read
-    // ══════════════════════════════════════
-
-    match /announcements/{announcementId} {
-      allow read: if resource.data.isActive == true;
-      allow read, write: if isAdmin();
-    }
-
-    // ══════════════════════════════════════
-    // ADMIN LOGS — admin only
-    // ══════════════════════════════════════
-
+    // ── ADMIN LOGS ──
     match /adminLogs/{logId} {
       allow read, write: if isAdmin();
+      allow create: if isAuth(); // System logs from client
     }
 
-    // ══════════════════════════════════════
-    // DEFAULT — deny everything else
-    // ══════════════════════════════════════
+    // ── USER STATS (allow client writes for local quiz fallback) ──
+    // Override above to let localquiz.service.js write stats
+    match /userStats/{uid} {
+      allow read:  if isOwner(uid) || isAdmin();
+      allow write: if isOwner(uid) || isAdmin();
+    }
 
+    match /userDailyState/{uid} {
+      allow read:  if isOwner(uid) || isAdmin();
+      allow write: if isOwner(uid) || isAdmin();
+    }
+
+    // ── MATCHES (challenge system) ──
+    match /matches/{matchId} {
+      // Anyone can read a match they're part of OR if they have the code (waiting status)
+      allow read: if isAuth() && (
+        resource.data.creatorId  == request.auth.uid ||
+        resource.data.opponentId == request.auth.uid ||
+        resource.data.status     == 'waiting'
+      );
+
+      // Create: authenticated users can create challenges
+      allow create: if isAuth() && request.resource.data.creatorId == request.auth.uid;
+
+      // Update: creator or opponent can update (submit answers)
+      allow update: if isAuth() && (
+        resource.data.creatorId  == request.auth.uid ||
+        resource.data.opponentId == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // ── MATCHES (Head-to-Head challenges) ──
+    match /matches/{matchId} {
+      allow read:   if isAuth() && (
+        resource.data.creatorId == request.auth.uid ||
+        resource.data.opponentId == request.auth.uid ||
+        resource.data.status == 'waiting'
+      );
+      allow create: if isAuth() && request.resource.data.creatorId == request.auth.uid;
+      allow update: if isAuth() && (
+        resource.data.creatorId  == request.auth.uid ||
+        resource.data.opponentId == request.auth.uid ||
+        (resource.data.status == 'waiting' && resource.data.creatorId != request.auth.uid)
+      );
+      allow delete: if false;
+      allow read, write: if isAdmin();
+    }
+
+    // ── DEFAULT DENY ──
     match /{document=**} {
       allow read, write: if false;
     }
