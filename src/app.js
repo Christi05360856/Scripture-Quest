@@ -74,6 +74,8 @@ let _selectedAvatarId     = null; // temp selection in modal
 let _pendingChallengeCode = null; // from URL param
 let _currentChallenge     = null; // active challenge data
 let _localQuestionsCache  = null; // cached for challenges
+let _activeChallengeMatchId = null; // track if user has an active challenge
+
 
 // ============================================
 // SCREEN MANAGEMENT
@@ -991,6 +993,23 @@ function openChallengeModal() {
   const user = getCurrentUser();
   if (!user) { openAuthModal(); return; }
 
+  // If already has active challenge, show waiting screen instead
+  if (_activeChallengeMatchId && _currentChallenge) {
+    const codeBox       = document.getElementById('challenge-code-box');
+    const createActions = document.getElementById('challenge-create-actions');
+    const shareActions  = document.getElementById('challenge-share-actions');
+    if (codeBox)       codeBox.classList.remove('hidden');
+    if (createActions) createActions.classList.add('hidden');
+    if (shareActions)  shareActions.classList.remove('hidden');
+    
+    // Restore code display
+    const codeDisplay = document.getElementById('challenge-code-display');
+    if (codeDisplay) codeDisplay.textContent = _currentChallenge.code || '—';
+    
+    document.getElementById('challenge-create-modal')?.classList.remove('hidden');
+    return;
+  }
+
   const codeBox       = document.getElementById('challenge-code-box');
   const createActions = document.getElementById('challenge-create-actions');
   const shareActions  = document.getElementById('challenge-share-actions');
@@ -1001,12 +1020,19 @@ function openChallengeModal() {
   document.getElementById('challenge-create-modal')?.classList.remove('hidden');
 }
 
+
 function closeChallengeModal() {
   document.getElementById('challenge-create-modal')?.classList.add('hidden');
   _challengeWhatsappUrl = null;
 }
 
 async function generateChallenge() {
+  // GUARD: Don't create if already have active challenge
+  if (_activeChallengeMatchId) {
+    showToast('You already have an active challenge! Check your notifications or wait for opponent.', 'warning');
+    return;
+  }
+
   const btn = document.getElementById('generate-challenge-btn');
   btn.disabled    = true;
   btn.textContent = 'Generating…';
@@ -1020,6 +1046,7 @@ async function generateChallenge() {
     }
 
     const result = await createChallenge(_localQuestionsCache);
+    _activeChallengeMatchId = result.matchId; // TRACK active challenge
     _challengeWhatsappUrl = result.whatsappUrl;
     _currentChallenge     = result;
 
@@ -1031,16 +1058,33 @@ async function generateChallenge() {
     document.getElementById('challenge-create-actions')?.classList.add('hidden');
     document.getElementById('challenge-share-actions')?.classList.remove('hidden');
 
+    // FIX: WhatsApp button — build link properly
+    const profile = getUserProfile();
+    const name = profile?.displayName || 'Someone';
+    const appUrl = window.location.origin + window.location.pathname;
+    const waLink = generateWhatsAppLink(result.code, name, appUrl);
+    
     const waBtn = document.getElementById('whatsapp-share-btn');
-    if (waBtn) waBtn.onclick = () => window.open(result.whatsappUrl, '_blank');
+    if (waBtn) waBtn.onclick = () => window.open(waLink, '_blank');
 
     showToast(`Challenge created! Code: ${result.code}`, 'success', 5000);
+           
   } catch (err) {
     showToast(err.message, 'error');
     btn.disabled  = false;
     btn.innerHTML = '<i class="fas fa-bolt"></i> Generate Challenge Link';
   }
 }
+
+function cancelActiveChallenge() {
+  if (_matchUnsubscribe) { _matchUnsubscribe(); _matchUnsubscribe = null; }
+  _activeChallengeMatchId = null;
+  _currentChallenge = null;
+  _challengeWhatsappUrl = null;
+  closeChallengeModal();
+  showToast('Challenge cancelled', 'info');
+}
+
 
 function showChallengeAcceptModal(code = '') {
   const input = document.getElementById('challenge-code-input');
@@ -1155,12 +1199,14 @@ async function showCreateChallengeUI() {
     document.getElementById('challenge-new-btn')?.addEventListener('click', showCreateChallengeUI);
 
     if (_matchUnsubscribe) _matchUnsubscribe();
-    _matchUnsubscribe = listenToMatch(matchId, match => {
+        _matchUnsubscribe = listenToMatch(matchId, match => {
       if (match.status === 'active' && match.opponentId) {
+        _activeChallengeMatchId = null; // Clear — battle is starting
         showToast(`${match.opponentName} accepted your challenge! 🔥`, 'success', 4000);
         setTimeout(() => startBattle(matchId, match.questions, match), 1500);
       }
     });
+           
   } catch(err) {
     showToast(err.message, 'error');
   }
@@ -1247,6 +1293,7 @@ function handleBattleWaiting(matchId) {
 // [Patch 2] setBattleFabVisible called here
 async function handleBattleComplete(match) {
   setBattleFabVisible(false);
+         _activeChallengeMatchId = null; // Clear after battle done
   if (_matchUnsubscribe) { _matchUnsubscribe(); _matchUnsubscribe = null; }
   // FIX: Clean up battle screen
   const { destroyBattleScreen } = await import('./pages/battle.page.js');
