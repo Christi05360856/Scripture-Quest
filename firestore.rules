@@ -135,29 +135,18 @@ service cloud.firestore {
     }
 
     // ── MATCHES (challenge system) ──
-    // SINGLE, CLEAN RULE BLOCK — no duplicates
+    // SINGLE BLOCK — any authenticated user can read/query matches
+    // This is required for the "accept by code" flow to work
     match /matches/{matchId} {
-      // READ: 
-      //   • Admin can read any match
-      //   • Anyone authenticated can read a WAITING match (needed to accept by code)
-      //   • Creator or opponent can read their own matches (active/completed)
-      allow read: if isAdmin() || (
-        isAuth() && (
-          resource.data.status == 'waiting' ||
-          resource.data.creatorId == request.auth.uid ||
-          resource.data.opponentId == request.auth.uid
-        )
-      );
+      // READ: any authenticated user can read matches (needed for code lookup queries)
+      // Admin can read all. App logic enforces expiration and status checks.
+      allow read: if isAuth() || isAdmin();
 
       // CREATE: authenticated user creating their own challenge
       allow create: if isAuth() && request.resource.data.creatorId == request.auth.uid;
 
-      // UPDATE: 
-      //   • Admin can update any match
-      //   • Creator can update their own match
-      //   • Opponent can update (set themselves as opponent, submit answers)
-      //   • ANY authenticated user can update a WAITING match to become opponent
-      //     (this is the key fix — acceptor needs to write opponentId)
+      // UPDATE: creator, opponent, or admin can update
+      // Also allows any auth user to join a WAITING match (become opponent)
       allow update: if isAdmin() || (
         isAuth() && (
           resource.data.creatorId == request.auth.uid ||
