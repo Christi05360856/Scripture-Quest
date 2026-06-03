@@ -12,12 +12,11 @@ service cloud.firestore {
       return isAuth() && request.auth.uid == uid;
     }
 
-    // Check admin via custom claim OR Firestore role document
     function isAdmin() {
       return isAuth() && (
         request.auth.token.admin == true ||
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
       );
     }
 
@@ -39,7 +38,7 @@ service cloud.firestore {
     // ── USER STATS ──
     match /userStats/{uid} {
       allow read:  if isOwner(uid) || isAdmin();
-      allow write: if isAdmin();
+      allow write: if isOwner(uid) || isAdmin();
     }
 
     // ── USER ACHIEVEMENTS ──
@@ -51,7 +50,7 @@ service cloud.firestore {
     // ── USER DAILY STATE ──
     match /userDailyState/{uid} {
       allow read:  if isOwner(uid) || isAdmin();
-      allow write: if isAdmin();
+      allow write: if isOwner(uid) || isAdmin();
     }
 
     // ── QUIZ SESSIONS ──
@@ -65,7 +64,7 @@ service cloud.firestore {
     // ── QUIZ ATTEMPTS ──
     match /quizAttempts/{attemptId} {
       allow read:   if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isAuth(); // Allow client writes for local quiz fallback
+      allow create: if isAuth();
       allow update: if isAdmin();
       allow delete: if false;
     }
@@ -77,7 +76,7 @@ service cloud.firestore {
 
       match /entries/{uid} {
         allow read:   if true;
-        allow write:  if isAuth() || isAdmin(); // Allow client for local quiz
+        allow write:  if isAuth() || isAdmin();
         allow delete: if isAdmin();
       }
     }
@@ -105,7 +104,7 @@ service cloud.firestore {
 
       match /analytics/{doc} {
         allow read:  if isAdmin();
-        allow write: if isAuth(); // Written by local quiz service
+        allow write: if isAuth();
       }
     }
 
@@ -132,58 +131,42 @@ service cloud.firestore {
     // ── ADMIN LOGS ──
     match /adminLogs/{logId} {
       allow read, write: if isAdmin();
-      allow create: if isAuth(); // System logs from client
-    }
-
-    // ── USER STATS (allow client writes for local quiz fallback) ──
-    // Override above to let localquiz.service.js write stats
-    match /userStats/{uid} {
-      allow read:  if isOwner(uid) || isAdmin();
-      allow write: if isOwner(uid) || isAdmin();
-    }
-
-    match /userDailyState/{uid} {
-      allow read:  if isOwner(uid) || isAdmin();
-      allow write: if isOwner(uid) || isAdmin();
+      allow create: if isAuth();
     }
 
     // ── MATCHES (challenge system) ──
+    // SINGLE, CLEAN RULE BLOCK — no duplicates
     match /matches/{matchId} {
-      // Anyone can read a match they're part of OR if they have the code (waiting status)
-      allow read: if isAuth() && (
-        resource.data.creatorId  == request.auth.uid ||
-        resource.data.opponentId == request.auth.uid ||
-        resource.data.status     == 'waiting'
+      // READ: 
+      //   • Admin can read any match
+      //   • Anyone authenticated can read a WAITING match (needed to accept by code)
+      //   • Creator or opponent can read their own matches (active/completed)
+      allow read: if isAdmin() || (
+        isAuth() && (
+          resource.data.status == 'waiting' ||
+          resource.data.creatorId == request.auth.uid ||
+          resource.data.opponentId == request.auth.uid
+        )
       );
 
-      // Create: authenticated users can create challenges
+      // CREATE: authenticated user creating their own challenge
       allow create: if isAuth() && request.resource.data.creatorId == request.auth.uid;
 
-      // Update: creator or opponent can update (submit answers)
-      allow update: if isAuth() && (
-        resource.data.creatorId  == request.auth.uid ||
-        resource.data.opponentId == request.auth.uid ||
-        isAdmin()
+      // UPDATE: 
+      //   • Admin can update any match
+      //   • Creator can update their own match
+      //   • Opponent can update (set themselves as opponent, submit answers)
+      //   • ANY authenticated user can update a WAITING match to become opponent
+      //     (this is the key fix — acceptor needs to write opponentId)
+      allow update: if isAdmin() || (
+        isAuth() && (
+          resource.data.creatorId == request.auth.uid ||
+          resource.data.opponentId == request.auth.uid ||
+          resource.data.status == 'waiting'
+        )
       );
 
       allow delete: if isAdmin();
-    }
-
-    // ── MATCHES (Head-to-Head challenges) ──
-    match /matches/{matchId} {
-      allow read:   if isAuth() && (
-        resource.data.creatorId == request.auth.uid ||
-        resource.data.opponentId == request.auth.uid ||
-        resource.data.status == 'waiting'
-      );
-      allow create: if isAuth() && request.resource.data.creatorId == request.auth.uid;
-      allow update: if isAuth() && (
-        resource.data.creatorId  == request.auth.uid ||
-        resource.data.opponentId == request.auth.uid ||
-        (resource.data.status == 'waiting' && resource.data.creatorId != request.auth.uid)
-      );
-      allow delete: if false;
-      allow read, write: if isAdmin();
     }
 
     // ── DEFAULT DENY ──
