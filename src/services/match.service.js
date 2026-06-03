@@ -31,7 +31,9 @@ export async function createChallenge(questions) {
 }
 
 export async function getChallengeByCode(code) {
-  const snap = await getDocs(query(collection(db,'matches'), where('code','==',code.toUpperCase())));
+  // Strip trailing :number junk (WhatsApp/browser artifacts)
+  const cleanCode = (code || '').toString().replace(/:\d+$/, '').trim().toUpperCase();
+  const snap = await getDocs(query(collection(db,'matches'), where('code','==', cleanCode)));
   if (snap.empty) return null;
   const d = snap.docs[0];
   return { matchId:d.id, ...d.data() };
@@ -109,21 +111,28 @@ export async function sendRematch(matchId) {
 }
 
 export function generateWhatsAppLink(code, challengerName, appUrl) {
-  const msg = encodeURIComponent(`⚔️ *${challengerName}* is challenging you to a Bible Quiz Battle on ScriptureQuest!\n\n📖 Think you know your Bible better?\n🔥 Accept here: ${appUrl}?challenge=${code}\n\n⏰ Expires in 2 hours!`);
+  const cleanUrl = `${appUrl}?challenge=${encodeURIComponent(code)}`;
+  const msg = encodeURIComponent(
+    `⚔️ *${challengerName}* is challenging you to a Bible Quiz Battle on ScriptureQuest!\n\n` +
+    `📖 Think you know your Bible better?\n` +
+    `🔥 Accept here: ${cleanUrl}\n\n` +
+    `⏰ Expires in 2 hours!`
+  );
   return `https://wa.me/?text=${msg}`;
 }
 
 /**
  * Read ?challenge=CODE from the current URL.
- * Returns the code string or null.
+ * Strips trailing :number artifacts added by WhatsApp/browsers.
  */
 export function getChallengeCodeFromURL() {
-  return new URLSearchParams(window.location.search).get('challenge') || null;
+  const raw = new URLSearchParams(window.location.search).get('challenge') || null;
+  if (!raw) return null;
+  return raw.replace(/:\d+$/, '').trim().toUpperCase() || null;
 }
 
 /**
  * Remove the ?challenge= param from the URL without triggering a page reload.
- * app.js calls this after reading the code so the param doesn't persist.
  */
 export function clearChallengeFromURL() {
   const url = new URL(window.location.href);
