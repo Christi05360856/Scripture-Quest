@@ -726,6 +726,51 @@ function showConfirm({ icon='⚠️', title, message, onConfirm }) {
 // EVENT WIRING
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
+           // Leaderboard: Join Challenge by code
+  document.getElementById('lb-join-code-btn')?.addEventListener('click', async () => {
+    const input = document.getElementById('lb-join-code-input');
+    const rawCode = input?.value?.trim() || '';
+    const code = rawCode.replace(/:\d+$/, '').toUpperCase();
+    
+    if (!code || !code.startsWith('SQ-')) {
+      showToast('Enter a valid challenge code (e.g. SQ-AB12)', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('lb-join-code-btn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Joining…';
+
+    try {
+      const matchData = await getChallengeByCode(code);
+      if (!matchData) {
+        throw new Error('Challenge not found. Check the code and try again.');
+      }
+      if (matchData.status !== 'waiting') {
+        throw new Error('This challenge is no longer available.');
+      }
+      if (matchData.creatorId === getCurrentUser()?.uid) {
+        throw new Error("You can't join your own challenge!");
+      }
+
+      const { matchId, questions } = await acceptChallenge(matchData.matchId);
+      showToast('Challenge accepted! Battle starting… ⚔️', 'success', 2000);
+      
+      setTimeout(() => startBattle(matchId, questions, { ...matchData, questions }), 800);
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  });
+
+  // Allow Enter key on join input
+  document.getElementById('lb-join-code-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('lb-join-code-btn')?.click();
+  });
+         
 
   // Auth modal
   document.getElementById('open-auth-btn')?.addEventListener('click', openAuthModal);
