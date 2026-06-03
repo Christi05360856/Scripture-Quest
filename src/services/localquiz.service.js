@@ -3,6 +3,10 @@
 // Fix 1: Merges Firestore + local questions.js
 //         to always reach TOTAL_QUESTIONS (15)
 // Fix 2: Session existence check before submit
+// Fix 3: Permission errors are thrown immediately,
+//        never mislabeled as "already submitted"
+// Fix 4: Firestore rules now allow users to write
+//        their own quizSessions (see firestore.rules)
 // ============================================
 
 import { db, auth }            from '../firebase/config.js';
@@ -111,7 +115,10 @@ export async function createLocalQuizSession(questionsArray) {
       isLocalSession: true
     });
   } catch (e) {
-    console.warn('[LocalQuiz] Session stub save failed (non-fatal):', e.message);
+    // FIX: Do NOT swallow permission errors here. Log but re-throw
+    // so the caller knows the session could not be created.
+    console.error('[LocalQuiz] Session stub save failed:', e.message);
+    throw new Error(`Failed to create quiz session: ${e.message}`);
   }
 
   return {
@@ -125,15 +132,21 @@ export async function submitLocalQuizSession(sessionId, userAnswers, questions) 
   const user = auth.currentUser;
   if (!user) throw new Error('You must be logged in.');
 
-  // Issue 2 Fix: Check if already submitted before doing anything
+  // ── Issue 2 Fix: Check if already submitted ──
+  // FIX: Permission errors on getDoc must be thrown immediately.
+  // Only the "already submitted" case should be handled specially.
   try {
     const sessionSnap = await getDoc(doc(db, 'quizSessions', sessionId));
     if (sessionSnap.exists() && sessionSnap.data().completed === true) {
+      throw new Error('ALREADY_SUBMITTED');
+    }
+  } catch (e) {
+    if (e.message === 'ALREADY_SUBMITTED') {
       throw new Error('This quiz session was already submitted. Please start a new quiz.');
     }
-  } catch(e) {
-    if (e.message.includes('already submitted')) throw e;
-    console.warn('[LocalQuiz] Session pre-check (non-fatal):', e.message);
+    // FIX: Re-throw permission/network errors immediately — do NOT swallow
+    console.error('[LocalQuiz] Session pre-check failed:', e.message);
+    throw new Error(`Session check failed: ${e.message}`);
   }
 
   let score = 0;
@@ -179,13 +192,14 @@ export async function submitLocalQuizSession(sessionId, userAnswers, questions) 
       submittedAt: serverTimestamp(),
       answers: userAnswers, score, percentage, xpEarned
     }, { merge: true });
-  } catch(e) {
-    console.warn('[LocalQuiz] Session lock failed:', e.message);
-    if (e.code === 'permission-denied') {
-      throw new Error('Quiz already submitted. Please wait a moment and try again.');
-    }
+  } catch (e) {
+    // FIX: Never mislabel permission-denied as "already submitted".
+    // Throw the real error so the UI can handle it properly.
+    console.error('[LocalQuiz] Session lock failed:', e.message);
+    throw new Error(`Failed to lock session: ${e.message}`);
   }
 
+  // ── Stats writes (best-effort, but still throw on permission errors) ──
   try {
     await setDoc(doc(collection(db, 'quizAttempts')), {
       userId: user.uid, sessionId, score, totalQuestions: total,
@@ -218,7 +232,11 @@ export async function submitLocalQuizSession(sessionId, userAnswers, questions) 
         updatedAt: serverTimestamp()
       }, { merge: true });
   } catch (e) {
-    console.error('[LocalQuiz] Stats write error (non-fatal):', e.message);
+    // FIX: Log but still re-throw so the UI knows something went wrong.
+    // The session is already locked, so the quiz won't be double-counted,
+    // but the user needs to know their stats might not have saved.
+    console.error('[LocalQuiz] Stats write error:', e.message);
+    throw new Error(`Quiz submitted, but stats save failed: ${e.message}`);
   }
 
   return {
@@ -273,4 +291,4 @@ function formatMs(ms) {
   const h = Math.floor(ms / 3600000);
   const m = Math.floor((ms % 3600000) / 60000);
   return `${h}h ${m}m`;
-             }
+}
