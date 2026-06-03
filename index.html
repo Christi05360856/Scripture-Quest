@@ -22,6 +22,7 @@
 </head>
 <body>
 <div id="app" class="app">
+
   <!-- LOADING -->
   <div id="screen-loading" class="loading-screen">
     <div style="font-size:64px;animation:bounce 1.5s ease-in-out infinite">📖</div>
@@ -50,6 +51,7 @@
       <span class="logo-mark">📖</span>
       <h1>ScriptureQuest</h1>
       <p class="landing-subtitle">Daily Bible Quiz Challenge</p>
+
       <!-- Logged out -->
       <div id="auth-section" class="auth-section hidden">
         <p class="auth-prompt">Sign in to compete and earn rewards</p>
@@ -57,6 +59,7 @@
           <i class="fas fa-sign-in-alt"></i> Sign In / Register
         </button>
       </div>
+
       <!-- Logged in -->
       <div id="welcome-section" class="welcome-section hidden">
         <div class="welcome-msg">
@@ -65,12 +68,14 @@
           <p class="welcome-chal" id="welcome-streak">🔥 Keep your streak going!</p>
           <span class="welcome-verse" id="daily-verse">"The fear of the LORD is the beginning of wisdom." — Proverbs 9:10</span>
         </div>
+
         <div id="quiz-available" class="welcome-actions hidden">
           <button id="start-quiz-btn" class="btn-primary btn-full btn-lg begin-btn">
             <i class="fas fa-play"></i> Start Quiz
           </button>
           <div id="attempts-badge" class="attempts-badge"></div>
         </div>
+
         <div id="quiz-limit-reached" class="limit-box hidden">
           <span class="limit-box-icon">⏰</span>
           <h3>Daily Limit Reached</h3>
@@ -78,11 +83,13 @@
           <div class="limit-countdown" id="limit-countdown">--:--:--</div>
           <p class="limit-sub">Until next quiz</p>
         </div>
+
         <div id="resume-section" class="hidden" style="margin-top:12px">
           <button id="resume-quiz-btn" class="btn-secondary btn-full">
             <i class="fas fa-redo"></i> Resume Unfinished Quiz
           </button>
         </div>
+
         <div id="profile-incomplete-warn" class="hidden"
              style="margin-top:12px;padding:12px 16px;background:var(--warning-bg);border:1px solid var(--warning-border);border-radius:var(--radius-md);text-align:center">
           <p style="font-size:13px;font-weight:700;color:var(--warning-text)">
@@ -91,57 +98,687 @@
           </p>
         </div>
       </div>
+
       <p class="card-footer">ScriptureQuest v4 • Bible Quiz Platform</p>
     </div>
   </div>
 
   <!-- ══ SCREEN: QUIZ ══ -->
   <div id="screen-quiz" class="screen hidden">
-    <!-- ... (unchanged) ... -->
+    <div class="quiz-wrapper">
+      <div class="top-bar">
+        <span class="progress-label" id="quiz-progress-label">Q 1 / 15</span>
+        <div class="top-bar-actions">
+          <span class="timer-display" id="quiz-timer" aria-live="polite">6:00</span>
+          <button id="quiz-theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+        </div>
+        <span class="user-display" id="quiz-user-name">—</span>
+      </div>
+
+      <div class="quiz-progress-strip">
+        <div class="quiz-progress-fill" id="quiz-progress-fill" style="width:0%"></div>
+      </div>
+
+      <div class="card question-card" id="question-card">
+        <span class="question-number-chip" id="question-chip">Question 1 of 15</span>
+        <p class="question-text" id="question-text">Loading question…</p>
+        <div class="options-list" id="options-list" role="list"></div>
+        <div id="feedback-area" class="feedback-area hidden" aria-live="polite"></div>
+      </div>
+
+      <div class="nav-controls">
+        <button id="quiz-prev-btn" class="btn-secondary" disabled>
+          <i class="fas fa-chevron-left"></i> Prev
+        </button>
+        <button id="quiz-next-btn" class="btn-primary">
+          Next <i class="fas fa-chevron-right"></i>
+        </button>
+        <button id="quiz-submit-btn" class="btn-primary hidden">
+          <i class="fas fa-paper-plane"></i> Submit
+        </button>
+      </div>
+
+      <div style="text-align:center;margin-top:16px">
+        <button id="quit-quiz-btn" class="btn-ghost btn-sm" style="color:var(--error);font-size:12px">
+          <i class="fas fa-times"></i> Abandon Quiz
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- ══ SCREEN: RESULT ══ -->
   <div id="screen-result" class="screen hidden">
-    <!-- ... (unchanged) ... -->
+    <div class="card result-card" style="max-width:720px;margin:0 auto">
+      <div class="result-header">
+        <span class="result-icon" id="result-icon">🎉</span>
+        <h2 id="result-title">Quiz Complete!</h2>
+        <p class="result-candidate" id="result-candidate-name">—</p>
+      </div>
+
+      <div class="score-box">
+        <div class="score-pct" id="result-pct">0%</div>
+        <div class="score-detail" id="result-detail">0 / 15 correct</div>
+        <span class="score-badge" id="result-badge">—</span>
+        <span class="xp-earned" id="result-xp">+0 XP</span>
+      </div>
+
+      <div class="stat-grid" style="margin:16px 0">
+        <div class="stat-card"><div class="stat-value" id="r-streak">0</div><div class="stat-label">🔥 Streak</div></div>
+        <div class="stat-card"><div class="stat-value" id="r-level">1</div><div class="stat-label">⭐ Level</div></div>
+        <div class="stat-card"><div class="stat-value" id="r-total-xp">0</div><div class="stat-label">✨ Total XP</div></div>
+        <div class="stat-card"><div class="stat-value" id="r-weekly-pts">0</div><div class="stat-label">🏆 Week Pts</div></div>
+      </div>
+
+      <div id="top3-banner" class="top3-banner hidden">
+        <strong>🏆 You're in the Top 3 this week!</strong>
+        <p>Keep your position to win your data reward at week end.</p>
+      </div>
+
+      <div id="achievement-unlocks" class="hidden"
+           style="margin:12px 0;padding:14px;background:var(--warning-bg);border:1px solid var(--warning-border);border-radius:var(--radius-lg);text-align:center">
+        <p style="font-weight:800;color:var(--warning-text);font-size:15px">🏅 Achievement Unlocked!</p>
+        <p id="achievement-text" style="color:var(--warning-text);font-size:13px;margin-top:4px"></p>
+      </div>
+
+      <div id="study-tip" class="study-tip hidden"></div>
+
+      <div class="chart-area">
+        <canvas id="result-chart" width="240" height="240"></canvas>
+      </div>
+
+      <div class="result-actions">
+        <button id="view-leaderboard-btn" class="btn-primary btn-full">
+          <i class="fas fa-trophy"></i> View Leaderboard
+        </button>
+        <button id="back-home-btn" class="btn-secondary btn-full">
+          <i class="fas fa-home"></i> Back to Home
+        </button>
+      </div>
+
+      <p id="result-attempts-msg" style="text-align:center;margin-top:12px;font-size:13px;color:var(--text-muted);font-weight:600"></p>
+    </div>
   </div>
 
   <!-- ══ SCREEN: LEADERBOARD ══ -->
   <div id="screen-leaderboard" class="screen hidden">
-    <!-- ... (unchanged) ... -->
+    <div class="card" style="max-width:720px;margin:0 auto">
+      <div class="leaderboard-intro">
+        <h2 style="font-size:24px;font-weight:900;color:var(--text-primary);margin-bottom:6px">🏆 Weekly Leaderboard</h2>
+        <p>Week <span id="lb-week-number">—</span> Competition</p>
+        <p class="leaderboard-motivation">Top 3 win data rewards at week end!</p>
+        <div style="margin-top:10px;padding:8px 16px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);display:inline-block">
+          <span style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Week ends in</span><br>
+          <span id="lb-countdown" style="font-size:20px;font-weight:900;color:var(--accent-primary);font-variant-numeric:tabular-nums">--:--:--</span>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span id="lb-entry-count" style="font-size:13px;color:var(--text-muted);font-weight:700"></span>
+        <div style="display:flex;gap:8px">
+          <button id="lb-refresh-btn" class="btn-secondary btn-sm"><i class="fas fa-sync-alt"></i> Refresh</button>
+          <button id="lb-theme-toggle" class="theme-toggle" style="width:36px;height:36px;font-size:16px">🌙</button>
+        </div>
+      </div>
+
+      <div id="lb-skeleton">
+        <div class="skeleton skeleton-row"></div>
+        <div class="skeleton skeleton-row"></div>
+        <div class="skeleton skeleton-row"></div>
+        <div class="skeleton skeleton-row"></div>
+        <div class="skeleton skeleton-row"></div>
+      </div>
+
+      <div id="lb-entries" class="hidden"></div>
+      <div id="lb-my-rank"></div>
+
+      <div style="margin-top:20px;padding:16px;background:var(--accent-warm-bg);border:1px solid var(--warning-border);border-radius:var(--radius-lg);text-align:center">
+        <p style="font-weight:800;color:var(--warning-text);margin-bottom:8px">🎁 Weekly Prizes</p>
+        <div style="display:flex;justify-content:center;gap:24px">
+          <div style="text-align:center"><div style="font-size:28px">🥇</div><div style="font-size:12px;font-weight:700;color:var(--warning-text)">2GB Data</div></div>
+          <div style="text-align:center"><div style="font-size:28px">🥈</div><div style="font-size:12px;font-weight:700;color:var(--warning-text)">1GB Data</div></div>
+          <div style="text-align:center"><div style="font-size:28px">🥉</div><div style="font-size:12px;font-weight:700;color:var(--warning-text)">500MB</div></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ══ SCREEN: REWARDS ══ -->
   <div id="screen-rewards" class="screen hidden">
-    <!-- ... (unchanged) ... -->
+    <div class="card" style="max-width:720px;margin:0 auto">
+      <div class="rewards-header">
+        <h3>🎁 Data Rewards</h3>
+        <p>Earn points, reach milestones, claim your data rewards</p>
+      </div>
+
+      <div class="points-hero">
+        <div class="points-hero-value" id="rewards-points">0</div>
+        <div class="points-hero-label">Total Points</div>
+      </div>
+
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="rewards-progress-fill"></div>
+        </div>
+        <div class="progress-labels">
+          <span>0</span>
+          <span id="rewards-next-milestone">5,000</span>
+        </div>
+      </div>
+
+      <h4 style="font-weight:800;color:var(--text-secondary);font-size:13px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px">Milestone Rewards</h4>
+      <div class="reward-tiers-list" id="reward-tiers-container"></div>
+
+      <div class="weekly-rewards-box">
+        <h4>🏆 Weekly Competition Rewards</h4>
+        <div class="weekly-tiers">
+          <div class="weekly-tier"><span class="weekly-medal">🥇</span><span class="weekly-label">2GB Data</span></div>
+          <div class="weekly-tier"><span class="weekly-medal">🥈</span><span class="weekly-label">1GB Data</span></div>
+          <div class="weekly-tier"><span class="weekly-medal">🥉</span><span class="weekly-label">500MB</span></div>
+        </div>
+        <p class="weekly-note">Top 3 on the weekly leaderboard win at the end of each competition week.</p>
+      </div>
+
+      <div id="rewards-eligibility-note"
+           style="margin-top:16px;padding:12px 16px;background:var(--info-bg);border:1px solid var(--info-border);border-radius:var(--radius-md);font-size:13px;font-weight:600;color:var(--info-text)">
+        📋 To claim rewards, your phone number and network provider must be complete in your profile.
+      </div>
+    </div>
   </div>
 
   <!-- ══ SCREEN: PROFILE ══ -->
   <div id="screen-profile" class="screen hidden">
-    <!-- ... (unchanged) ... -->
+    <div class="card" style="max-width:720px;margin:0 auto">
+      <div class="profile-header">
+        <div>
+          <div class="profile-avatar" id="profile-avatar" onclick="SQ.openAvatarModal()" title="Change avatar">
+            <!-- SVG avatar rendered by app.js -->
+          </div>
+          <p class="profile-avatar-edit-hint" onclick="SQ.openAvatarModal()">✏️ Change</p>
+        </div>
+        <div class="profile-info">
+          <h3 id="profile-name">—</h3>
+          <p id="profile-email" style="font-size:13px;color:var(--text-muted)">—</p>
+          <p id="profile-joined" style="font-size:12px;color:var(--text-muted)">—</p>
+          <span class="profile-role-chip" id="profile-role">User</span>
+          <span class="profile-featured-badge hidden" id="profile-featured-badge"></span>
+        </div>
+      </div>
+
+      <!-- Profile sub-tabs -->
+      <div class="profile-tabs">
+        <button class="profile-tab-btn active" data-tab="stats">📊 Stats</button>
+        <button class="profile-tab-btn"        data-tab="achievements">🏅 Achievements</button>
+      </div>
+
+      <!-- TAB: Stats -->
+      <div id="profile-tab-stats">
+        <div class="stat-grid" id="profile-stats-grid">
+          <div class="stat-card"><div class="stat-value" id="p-total-xp">0</div><div class="stat-label">✨ Total XP</div></div>
+          <div class="stat-card"><div class="stat-value" id="p-level">1</div><div class="stat-label">⭐ Level</div></div>
+          <div class="stat-card"><div class="stat-value" id="p-streak">0</div><div class="stat-label">🔥 Streak</div></div>
+          <div class="stat-card"><div class="stat-value" id="p-quizzes">0</div><div class="stat-label">📝 Quizzes</div></div>
+          <div class="stat-card"><div class="stat-value" id="p-best">0%</div><div class="stat-label">🎯 Best Score</div></div>
+          <div class="stat-card"><div class="stat-value" id="p-longest-streak">0</div><div class="stat-label">🏆 Best Streak</div></div>
+        </div>
+
+        <div style="margin:16px 0;padding:16px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-lg)">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span style="font-weight:700;font-size:13px;color:var(--text-secondary)">Level <span id="p-lvl-current">1</span></span>
+            <span style="font-weight:700;font-size:13px;color:var(--text-muted)"><span id="p-xp-current">0</span> / <span id="p-xp-needed">100</span> XP</span>
+          </div>
+          <div class="progress-bar-track" style="height:10px">
+            <div class="progress-bar-fill" id="p-xp-fill" style="width:0%"></div>
+          </div>
+          <p style="font-size:11px;color:var(--text-muted);margin-top:6px;font-weight:600">
+            Level <span id="p-lvl-next">2</span> at <span id="p-xp-needed-2">100</span> XP
+          </p>
+        </div>
+
+        <!-- Contact Details — EDIT (shown when not yet complete) -->
+        <div class="contact-section" id="contact-edit-section">
+          <h4><i class="fas fa-phone"></i> Contact Details
+            <span class="contact-required" id="contact-required-note">— Required for reward eligibility</span>
+          </h4>
+          <div class="contact-form">
+            <input type="tel" id="profile-phone" placeholder="Phone number (e.g. 08012345678)" autocomplete="tel" />
+            <select id="profile-network">
+              <option value="">Select network provider</option>
+              <option value="MTN">MTN</option>
+              <option value="Airtel">Airtel</option>
+              <option value="Glo">Glo</option>
+              <option value="9mobile">9mobile</option>
+            </select>
+            <button id="save-contact-btn" class="btn-primary">
+              <i class="fas fa-save"></i> Save Contact Info
+            </button>
+          </div>
+        </div>
+
+        <!-- Contact Details — DISPLAY (shown after complete) -->
+        <div class="contact-section hidden" id="contact-display-section">
+          <h4><i class="fas fa-phone"></i> Contact Details — ✅ Saved</h4>
+          <div class="contact-display">
+            <div class="contact-display-row">
+              <span class="contact-display-label">Phone</span>
+              <span class="contact-display-value" id="contact-display-phone">—</span>
+            </div>
+            <div class="contact-display-row">
+              <span class="contact-display-label">Network</span>
+              <span class="contact-display-value" id="contact-display-network">—</span>
+            </div>
+            <p class="contact-display-note">Contact admin via Settings to update your details.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Achievements -->
+      <div id="profile-tab-achievements" class="hidden">
+
+        <div class="badges-section-header">
+          <div class="badges-section-title">🏅 Your Badge Collection</div>
+          <span class="badges-earned-count" id="badges-earned-count">0 / 16 earned</span>
+        </div>
+
+        <div class="badges-stats-bar" id="badges-stats-bar">
+          <div class="badges-stat-chip chip-bronze">
+            <div class="badges-stat-chip-value">0</div>
+            <div class="badges-stat-chip-label">🥉 Bronze</div>
+          </div>
+          <div class="badges-stat-chip chip-silver">
+            <div class="badges-stat-chip-value">0</div>
+            <div class="badges-stat-chip-label">🥈 Silver</div>
+          </div>
+          <div class="badges-stat-chip chip-gold">
+            <div class="badges-stat-chip-value">0</div>
+            <div class="badges-stat-chip-label">🥇 Gold</div>
+          </div>
+          <div class="badges-stat-chip chip-legendary">
+            <div class="badges-stat-chip-value">0</div>
+            <div class="badges-stat-chip-label">✨ Legend</div>
+          </div>
+        </div>
+
+        <p style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:14px;text-align:center">
+          Progress bars show how close you are to locked badges
+        </p>
+
+        <div class="badges-grid" id="achievements-grid">
+          <div class="empty-state" style="grid-column:1/-1">
+            <p>Loading badges…</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <!-- ══ SCREEN: SETTINGS ══ -->
   <div id="screen-settings" class="screen hidden">
-    <!-- ... (unchanged) ... -->
+    <div style="max-width:720px;margin:0 auto">
+
+      <div style="text-align:center;margin-bottom:20px;padding:16px 0">
+        <div style="font-size:40px;margin-bottom:8px">⚙️</div>
+        <h2 style="font-size:20px;font-weight:900;color:var(--text-primary)">Settings</h2>
+      </div>
+
+      <!-- Appearance -->
+      <div class="settings-group">
+        <div class="settings-group-label">Appearance</div>
+        <div class="settings-row">
+          <div class="settings-row-icon yellow">🌙</div>
+          <div class="settings-row-text">
+            <div class="settings-row-title">Dark Mode</div>
+            <div class="settings-row-sub">Easier on the eyes at night</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="setting-dark-mode" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Sound & Notifications -->
+      <div class="settings-group">
+        <div class="settings-group-label">Sound & Notifications</div>
+        <div class="settings-row">
+          <div class="settings-row-icon blue">🔊</div>
+          <div class="settings-row-text">
+            <div class="settings-row-title">Sound Effects</div>
+            <div class="settings-row-sub">Quiz feedback sounds</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="setting-sound" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-icon yellow">🔔</div>
+          <div class="settings-row-text">
+            <div class="settings-row-title">Push Notifications</div>
+            <div class="settings-row-sub">Streak reminders, reward alerts</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="setting-notifications" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Support -->
+      <div class="settings-group">
+        <div class="settings-group-label">Support</div>
+        <div class="settings-row" style="cursor:pointer" id="whatsapp-contact-btn">
+          <div class="settings-row-icon green">💬</div>
+          <div class="settings-row-text">
+            <div class="settings-row-title">Contact Admin</div>
+            <div class="settings-row-sub">WhatsApp support</div>
+          </div>
+          <a class="whatsapp-btn" aria-label="Contact on WhatsApp">💬</a>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-icon purple">📋</div>
+          <div class="settings-row-text">
+            <div class="settings-row-title">App Version</div>
+            <div class="settings-row-sub">v4.0 — ScriptureQuest Overhaul</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Account -->
+      <div class="settings-group">
+        <div class="settings-group-label">Account</div>
+        <div class="settings-row" style="cursor:pointer" id="settings-logout-btn">
+          <div class="settings-row-icon red">🚪</div>
+          <div class="settings-row-text">
+            <div class="settings-row-title" style="color:var(--error)">Sign Out</div>
+            <div class="settings-row-sub">Log out of your account</div>
+          </div>
+          <i class="fas fa-chevron-right" style="color:var(--text-muted);font-size:14px"></i>
+        </div>
+      </div>
+
+    </div>
   </div>
 
-  <!-- ══ SCREEN: BATTLE (head-to-head) ══ -->
-  <div id="screen-battle" class="screen hidden">
-    <!-- ... (unchanged) ... -->
-  </div>
-
-  <!-- All other screens and modals remain unchanged (challenge modals, battle result, avatar modal, etc.) -->
-
-  <!-- ══ BOTTOM NAV — 5 items (Battle removed) ══ -->
+  <!-- ══ BOTTOM NAV — Battle item removed; FAB handles battle access ══ -->
   <nav id="bottom-nav" class="bottom-nav hidden" aria-label="Main navigation">
-    <button class="nav-item active" data-screen="landing" aria-label="Home"><i class="fas fa-home"></i><span>Home</span></button>
-    <button class="nav-item" data-screen="leaderboard" aria-label="Leaderboard"><i class="fas fa-trophy"></i><span>Ranks</span></button>
-    <button class="nav-item" data-screen="rewards" aria-label="Rewards"><i class="fas fa-gift"></i><span>Rewards</span></button>
-    <button class="nav-item" data-screen="profile" aria-label="Profile"><i class="fas fa-user"></i><span>Profile</span></button>
-    <button class="nav-item" data-screen="settings" aria-label="Settings"><i class="fas fa-cog"></i><span>Settings</span></button>
+    <button class="nav-item active" data-screen="landing"     aria-label="Home"><i class="fas fa-home"></i><span>Home</span></button>
+    <button class="nav-item"        data-screen="leaderboard" aria-label="Leaderboard"><i class="fas fa-trophy"></i><span>Ranks</span></button>
+    <button class="nav-item"        data-screen="rewards"     aria-label="Rewards"><i class="fas fa-gift"></i><span>Rewards</span></button>
+    <button class="nav-item"        data-screen="profile"     aria-label="Profile"><i class="fas fa-user"></i><span>Profile</span></button>
+    <button class="nav-item"        data-screen="settings"    aria-label="Settings"><i class="fas fa-cog"></i><span>Settings</span></button>
   </nav>
 
-  <!-- ══ FLOATING BATTLE BUTTON (FAB) ══ -->
+  <!-- ══ AUTH MODAL ══ -->
+  <div id="auth-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+    <div class="modal-content" style="max-width:480px">
+      <div style="font-size:40px;margin-bottom:8px">📖</div>
+      <h3 id="auth-modal-title" style="margin-bottom:0">ScriptureQuest</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:0">Your daily Bible quiz challenge</p>
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab active" id="tab-login" role="tab" aria-selected="true" onclick="SQ.switchAuthTab('login')">Sign In</button>
+        <button class="auth-tab" id="tab-register" role="tab" aria-selected="false" onclick="SQ.switchAuthTab('register')">Register</button>
+      </div>
+      <div id="auth-message" class="auth-error" role="alert"></div>
+      <div id="login-form" class="auth-form">
+        <input type="email" id="login-email" placeholder="Email address" autocomplete="email" required />
+        <input type="password" id="login-password" placeholder="Password" autocomplete="current-password" required />
+        <button id="login-btn" class="btn-primary btn-full"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+        <button id="forgot-btn" class="btn-ghost btn-sm" style="color:var(--text-muted);font-size:13px">Forgot password?</button>
+      </div>
+      <div id="register-form" class="auth-form hidden">
+        <input type="text" id="reg-name" placeholder="Full name" autocomplete="name" required />
+        <input type="email" id="reg-email" placeholder="Email address" autocomplete="email" required />
+        <input type="password" id="reg-password" placeholder="Password (min 6 characters)" autocomplete="new-password" required />
+        <button id="register-btn" class="btn-primary btn-full"><i class="fas fa-user-plus"></i> Create Account</button>
+      </div>
+      <button onclick="SQ.closeAuthModal()" class="btn-ghost btn-sm" style="margin-top:8px;color:var(--text-muted);font-size:13px">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ══ CONFIRM MODAL ══ -->
+  <div id="confirm-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <div class="modal-icon" id="confirm-icon">⚠️</div>
+      <h3 id="confirm-title">Are you sure?</h3>
+      <p id="confirm-message">This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button id="confirm-cancel-btn" class="btn-secondary">Cancel</button>
+        <button id="confirm-ok-btn" class="btn-primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ LEVEL UP MODAL ══ -->
+  <div id="levelup-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <div class="modal-icon" style="animation:bounceIn 0.5s ease">⭐</div>
+      <h3 style="background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Level Up!</h3>
+      <p>You reached <strong id="levelup-level">Level 2</strong>!</p>
+      <div style="font-size:48px;margin:12px 0;animation:bounceIn 0.6s 0.1s ease both">🎉</div>
+      <button id="levelup-close-btn" class="btn-primary btn-full">Awesome!</button>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: BATTLE (head-to-head quiz) ══ -->
+  <div id="screen-battle" class="screen hidden">
+    <div style="max-width:720px;margin:0 auto">
+
+      <!-- Versus bar -->
+      <div class="battle-versus-bar">
+        <div class="battle-player">
+          <div class="battle-avatar" id="battle-my-avatar"></div>
+          <div class="battle-player-name" id="battle-my-name">You</div>
+        </div>
+        <div class="battle-vs-center">
+          <div class="battle-timer" id="battle-timer">6:00</div>
+          <div class="battle-vs-badge">VS</div>
+        </div>
+        <div class="battle-player">
+          <div class="battle-avatar" id="battle-opponent-avatar"></div>
+          <div class="battle-player-name" id="battle-opponent-name">Opponent</div>
+        </div>
+      </div>
+
+      <!-- Progress strip -->
+      <div class="quiz-progress-strip"><div class="quiz-progress-fill" id="battle-progress" style="width:0%"></div></div>
+
+      <!-- Question card -->
+      <div class="card question-card">
+        <span class="question-number-chip" id="battle-q-chip">Question 1 of 15</span>
+        <p class="question-text" id="battle-q-text">Loading…</p>
+        <div class="options-list" id="battle-options"></div>
+      </div>
+
+      <!-- Nav -->
+      <div class="nav-controls">
+        <button id="battle-prev-btn" class="btn-secondary" disabled><i class="fas fa-chevron-left"></i> Prev</button>
+        <button id="battle-next-btn" class="btn-primary">Next <i class="fas fa-chevron-right"></i></button>
+        <button id="battle-submit-btn" class="btn-primary hidden"><i class="fas fa-paper-plane"></i> Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL: CREATE CHALLENGE ══ -->
+  <div id="challenge-create-modal" class="modal hidden" role="dialog">
+    <div class="modal-content" style="max-width:440px">
+      <div style="font-size:44px;margin-bottom:12px">⚔️</div>
+      <h3 style="margin-bottom:6px">Challenge Someone!</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">
+        A challenge link will be generated. Share it on WhatsApp — they have 2 hours to accept!
+      </p>
+
+      <div id="challenge-code-box" class="hidden" style="background:var(--bg-subtle);border:2px dashed var(--accent-primary);border-radius:var(--radius-lg);padding:20px;text-align:center;margin-bottom:16px">
+        <p style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:6px">CHALLENGE CODE</p>
+        <div id="challenge-code-display" style="font-size:32px;font-weight:900;color:var(--accent-primary);letter-spacing:4px"></div>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:8px;font-weight:600">Expires in 2 hours</p>
+      </div>
+
+      <div id="challenge-create-actions">
+        <button class="btn-primary btn-full" id="generate-challenge-btn" onclick="SQ.generateChallenge()">
+          <i class="fas fa-bolt"></i> Generate Challenge Link
+        </button>
+      </div>
+
+      <div id="challenge-share-actions" class="hidden" style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+        <button class="btn-primary btn-full" id="whatsapp-share-btn" style="background:linear-gradient(135deg,#25d366,#128c7e)">
+          💬 Share on WhatsApp
+        </button>
+        <button class="btn-secondary btn-full" onclick="SQ.closeChallengeModal()">Done</button>
+      </div>
+
+      <button onclick="SQ.closeChallengeModal()" class="btn-ghost btn-sm" style="margin-top:10px;color:var(--text-muted);font-size:13px;width:100%">
+        Cancel
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ MODAL: ACCEPT CHALLENGE ══ -->
+  <div id="challenge-accept-modal" class="modal hidden" role="dialog">
+    <div class="modal-content" style="max-width:440px">
+      <div style="font-size:44px;margin-bottom:12px">⚔️</div>
+      <h3 id="accept-challenge-title" style="margin-bottom:6px">Bible Quiz Challenge!</h3>
+      <p id="accept-challenge-sub" style="font-size:14px;color:var(--text-secondary);margin-bottom:20px">
+        Someone challenged you to a Bible quiz battle!
+      </p>
+
+      <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;margin-bottom:20px;font-size:13px;color:var(--text-muted)">
+        <p>⏱️ 15 questions, 6 minutes</p>
+        <p style="margin-top:6px">🏆 Winner gets +50 XP</p>
+        <p style="margin-top:6px">💪 Participants get +15 XP</p>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <input type="text" id="challenge-code-input"
+               placeholder="Enter challenge code (e.g. SQ-AB12)"
+               class="form-control" style="text-align:center;font-size:18px;font-weight:800;letter-spacing:3px;text-transform:uppercase" />
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn-primary btn-full" id="accept-challenge-btn" onclick="SQ.acceptChallengeByCode()">
+          <i class="fas fa-fist-raised"></i> Accept Challenge!
+        </button>
+        <button class="btn-secondary btn-full" onclick="SQ.closeChallengeAcceptModal()">Maybe Later</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: CHALLENGE LOBBY ══ -->
+  <div id="screen-challenge" class="screen center hidden">
+    <div class="card" style="max-width:480px;text-align:center">
+      <div style="font-size:52px;margin-bottom:12px">⚔️</div>
+      <h2 style="font-size:22px;font-weight:900;color:var(--text-primary);margin-bottom:6px" id="challenge-title">Challenge a Friend!</h2>
+      <p style="color:var(--text-muted);font-size:14px;margin-bottom:20px" id="challenge-sub">Share via WhatsApp and wait for them to accept</p>
+
+      <!-- Create challenge -->
+      <div id="challenge-create-section">
+        <div style="background:var(--bg-subtle);border:2px dashed var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px">
+          <div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Your Challenge Code</div>
+          <div id="challenge-code" style="font-size:36px;font-weight:900;color:var(--accent-primary);letter-spacing:4px;font-variant-numeric:tabular-nums">—</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:6px;font-weight:600">⏰ Expires in 2 hours</div>
+        </div>
+        <button id="challenge-whatsapp-btn" class="btn-full" style="background:#25D366;color:white;border:none;padding:16px;border-radius:var(--radius-md);font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px">
+          💬 Share on WhatsApp
+        </button>
+        <button id="challenge-new-btn" class="btn-secondary btn-full btn-sm">Generate New Code</button>
+      </div>
+
+      <!-- Accept challenge (from URL) -->
+      <div id="challenge-accept-section" class="hidden">
+        <div style="padding:16px;background:var(--info-bg);border:1px solid var(--info-border);border-radius:var(--radius-lg);margin-bottom:16px">
+          <p style="font-weight:800;color:var(--info-text);font-size:15px" id="challenge-from-name">Someone challenged you!</p>
+          <p style="color:var(--info-text);font-size:13px;margin-top:4px">Are you ready to battle?</p>
+        </div>
+        <button id="challenge-accept-btn" class="btn-primary btn-full btn-lg">⚔️ Accept Challenge</button>
+        <button id="challenge-decline-btn" class="btn-ghost btn-full btn-sm" style="margin-top:8px;color:var(--text-muted)">Decline</button>
+      </div>
+
+      <!-- Waiting for opponent -->
+      <div id="challenge-waiting-section" class="hidden">
+        <div class="spinner" style="margin:20px auto"></div>
+        <p style="color:var(--text-muted);font-weight:600;margin-top:12px">Waiting for opponent to finish…</p>
+        <p style="color:var(--text-muted);font-size:12px;margin-top:6px">You'll see results when they're done</p>
+      </div>
+
+      <button onclick="SQ.showScreen('landing')" class="btn-ghost btn-sm" style="margin-top:16px;color:var(--text-muted)">← Back to Home</button>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: BATTLE RESULT ══ -->
+  <div id="screen-battle-result" class="screen center hidden">
+    <div class="card" style="max-width:520px;text-align:center">
+      <div style="font-size:52px;margin-bottom:8px" id="battle-result-icon">🏆</div>
+      <h2 style="font-size:22px;font-weight:900;margin-bottom:4px" id="battle-result-title">Battle Complete!</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px" id="battle-result-sub"></p>
+
+      <div class="battle-score-grid">
+        <div class="battle-score-card" id="battle-score-me">
+          <div class="battle-score-avatar" id="battle-result-my-avatar"></div>
+          <div class="battle-score-name"   id="battle-result-my-name">You</div>
+          <div class="battle-score-pct"    id="battle-result-my-pct">0%</div>
+          <div class="battle-score-detail" id="battle-result-my-score">0/15</div>
+        </div>
+        <div class="battle-score-vs">VS</div>
+        <div class="battle-score-card" id="battle-score-opponent">
+          <div class="battle-score-avatar" id="battle-result-opp-avatar"></div>
+          <div class="battle-score-name"   id="battle-result-opp-name">Opponent</div>
+          <div class="battle-score-pct"    id="battle-result-opp-pct">0%</div>
+          <div class="battle-score-detail" id="battle-result-opp-score">0/15</div>
+        </div>
+      </div>
+
+      <div style="margin:16px 0;padding:14px;background:var(--warning-bg);border:1px solid var(--warning-border);border-radius:var(--radius-lg)">
+        <p id="battle-result-xp" style="font-weight:800;color:var(--warning-text);font-size:16px">+50 XP</p>
+        <p style="font-size:12px;color:var(--warning-text);margin-top:2px">Battle bonus added to your total!</p>
+      </div>
+
+      <div id="battle-thread" style="margin-bottom:16px;text-align:left"></div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button id="battle-rematch-btn" class="btn-primary btn-full">🔄 Request Rematch</button>
+        <button onclick="SQ.showScreen('leaderboard')" class="btn-secondary btn-full">🏆 View Leaderboard</button>
+        <button onclick="SQ.showScreen('landing')" class="btn-ghost btn-full btn-sm" style="color:var(--text-muted)">← Home</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ AVATAR SELECTOR MODAL ══ -->
+  <div id="avatar-modal" class="avatar-modal-overlay hidden">
+    <div class="avatar-modal-sheet">
+
+      <div class="avatar-modal-header">
+        <div class="avatar-modal-title">🎭 Choose Your Avatar</div>
+        <button class="avatar-modal-close" onclick="SQ.closeAvatarModal()">×</button>
+      </div>
+
+      <div class="avatar-filter-tabs">
+        <button class="avatar-filter-btn active" id="avatar-filter-all"    onclick="SQ.filterAvatars('all')">All</button>
+        <button class="avatar-filter-btn"        id="avatar-filter-male"   onclick="SQ.filterAvatars('male')">👨 Male</button>
+        <button class="avatar-filter-btn"        id="avatar-filter-female" onclick="SQ.filterAvatars('female')">👩 Female</button>
+      </div>
+
+      <div class="avatar-selected-preview">
+        <div class="avatar-preview-circle" id="avatar-preview-circle"></div>
+        <div class="avatar-preview-info">
+          <div class="avatar-preview-name" id="avatar-preview-name">Scholar</div>
+          <div class="avatar-preview-role">Tap any avatar to preview</div>
+        </div>
+      </div>
+
+      <div class="avatar-grid-scroll">
+        <div class="avatar-grid" id="avatar-grid"></div>
+      </div>
+
+      <div class="avatar-save-bar">
+        <button class="btn-primary btn-full" id="avatar-save-btn" onclick="SQ.saveSelectedAvatar()">
+          <i class="fas fa-check"></i> Save Avatar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ FLOATING BATTLE BUTTON — hidden by default, shown when challenge is active ══ -->
   <button id="battle-fab" class="battle-fab hidden" onclick="SQ.showScreen('challenge')" aria-label="Active Battle">
     ⚔️
     <span class="battle-fab-label">Battle</span>
