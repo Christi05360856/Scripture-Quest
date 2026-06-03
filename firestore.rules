@@ -54,10 +54,19 @@ service cloud.firestore {
     }
 
     // ── QUIZ SESSIONS ──
+    // FIX: Allow authenticated users to create and update their OWN sessions.
+    // This is required for the local quiz fallback to work.
     match /quizSessions/{sessionId} {
       allow read:   if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isAdmin();
-      allow update: if isAdmin();
+
+      // CREATE: user must own the session (userId matches their auth uid)
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+
+      // UPDATE: user must own the existing session, OR be admin
+      allow update: if isAuth() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+
       allow delete: if false;
     }
 
