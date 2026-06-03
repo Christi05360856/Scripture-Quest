@@ -78,7 +78,8 @@ let _localQuestionsCache  = null; // cached for challenges
 // ============================================
 // SCREEN MANAGEMENT
 // ============================================
-const SCREENS = ['loading','landing','quiz','result','leaderboard','rewards','profile','settings','battle','battle-result'];
+
+const SCREENS = ['loading','landing','quiz','result','leaderboard','rewards','profile','settings','battle','battle-result','challenge'];
 
 
 function showScreen(name) {
@@ -88,7 +89,7 @@ function showScreen(name) {
   });
 
   const nav   = document.getElementById('bottom-nav');
-  const noNav = ['loading','quiz','result','battle','battle-result'];
+  const noNav = ['loading','quiz','result','battle','battle-result','challenge'];
   if (nav) nav.classList.toggle('hidden', noNav.includes(name));
 
   document.querySelectorAll('.nav-item').forEach(btn => {
@@ -758,7 +759,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const { matchId, questions } = await acceptChallenge(matchData.matchId);
       showToast('Challenge accepted! Battle starting… ⚔️', 'success', 2000);
       
+            // FIX: Clean up any old battle state before starting new one
+      const { destroyBattleScreen } = await import('./pages/battle.page.js');
+      destroyBattleScreen();
       setTimeout(() => startBattle(matchId, questions, { ...matchData, questions }), 800);
+             
     } catch (err) {
       showToast(err.message, 'error');
     } finally {
@@ -837,7 +842,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('start-quiz-btn')?.addEventListener('click',  () => handleStartQuiz(false));
   document.getElementById('resume-quiz-btn')?.addEventListener('click', () => handleStartQuiz(true));
 
-  // Bottom nav
+    // Bottom nav
   document.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
       const target = btn.dataset.screen;
@@ -847,9 +852,17 @@ document.addEventListener('DOMContentLoaded', () => {
         unsubscribeLeaderboard();
         if (_lbCountdownTimer) clearInterval(_lbCountdownTimer);
       }
+      
+      // FIX: BATTLE icon goes to challenge lobby, not empty battle screen
+      if (target === 'battle') {
+        showScreen('challenge');
+        return;
+      }
+      
       showScreen(target);
     });
   });
+         
 
   // Result buttons
   document.getElementById('view-leaderboard-btn')?.addEventListener('click', () => showScreen('leaderboard'));
@@ -1062,10 +1075,15 @@ async function acceptChallengeByCode() {
     closeChallengeAcceptModal();
     showToast(`Challenge accepted! Good luck! ⚔️`, 'success', 3000);
 
-    // Step 3: Start the battle
+        // Step 3: Start the battle
+    // FIX: Clean up any old battle state before starting new one
+    const { destroyBattleScreen } = await import('./pages/battle.page.js');
+    destroyBattleScreen();
+    
     const challengePage = await import('./pages/challenge.page.js');
     showScreen('battle');
     await challengePage.initChallengePage(matchId, { ...matchData, questions }, {
+             
       onDone: (result) => {
         if (result.action === 'rematch') {
           openChallengeModal();
@@ -1091,13 +1109,24 @@ let _currentMatchData = null;
 let _matchUnsubscribe = null;
 let _appUrl = window.location.origin;
 
+// FIX: Initialize challenge lobby page
 async function initChallengeScreen() {
-  const code = getChallengeCodeFromURL();
-  if (code) {
-    await handleIncomingChallenge(code);
-    return;
+  const user = getCurrentUser();
+  if (!user) { openAuthModal(); return; }
+  
+  try {
+    const challengePage = await import('./pages/challenge.page.js');
+    await challengePage.initChallengePage({
+      onBack: () => { showScreen('landing'); initLandingScreen(); },
+      onStartBattle: ({ matchId, questions, match }) => {
+        startBattle(matchId, questions, match);
+      }
+    });
+  } catch (err) {
+    console.error('[App] Failed to init challenge screen:', err);
+    showToast('Failed to load battle lobby', 'error');
+    showScreen('landing');
   }
-  showCreateChallengeUI();
 }
 
 async function showCreateChallengeUI() {
@@ -1163,8 +1192,14 @@ async function handleIncomingChallenge(code) {
       acceptBtn.parentNode.replaceChild(newAcceptBtn, acceptBtn);
       newAcceptBtn.addEventListener('click', async () => {
         try {
-          const result = await acceptChallenge(match.matchId);  // ← use matchId here
+           const result = await acceptChallenge(match.matchId);  // ← use matchId here
+          
+          // FIX: Clean up old battle state
+          const { destroyBattleScreen } = await import('./pages/battle.page.js');
+          destroyBattleScreen();
+          
           startBattle(match.matchId, result.questions, match);
+                 
         } catch(err) { 
           showToast(err.message, 'error'); 
         }
@@ -1187,6 +1222,9 @@ async function handleIncomingChallenge(code) {
 // [Patch 2] setBattleFabVisible called here
 async function startBattle(matchId, questions, match) {
   setBattleFabVisible(true);
+  // FIX: Clean up any old battle state before starting new one
+  const { destroyBattleScreen } = await import('./pages/battle.page.js');
+  destroyBattleScreen();
   const { initBattleScreen } = await import('./pages/battle.page.js');
   showScreen('battle');
   await initBattleScreen(matchId, questions, match, {
@@ -1210,6 +1248,9 @@ function handleBattleWaiting(matchId) {
 async function handleBattleComplete(match) {
   setBattleFabVisible(false);
   if (_matchUnsubscribe) { _matchUnsubscribe(); _matchUnsubscribe = null; }
+  // FIX: Clean up battle screen
+  const { destroyBattleScreen } = await import('./pages/battle.page.js');
+  destroyBattleScreen();
   showScreen('battle-result');
   renderBattleResult(match);
 }
