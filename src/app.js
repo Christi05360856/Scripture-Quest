@@ -1312,7 +1312,7 @@ function renderBattleResult(match) {
     btn.innerHTML = '🔄 Request Rematch';
   }
 });
-             
+}            
 
 // ============================================
 // AVATAR MODAL
