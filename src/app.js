@@ -1259,12 +1259,60 @@ function renderBattleResult(match) {
   }
 
   el('battle-rematch-btn')?.addEventListener('click', async () => {
-    await sendRematch(match.matchId);
-    showToast('Rematch request sent! 🔄','success');
-    showCreateChallengeUI();
-    showScreen('challenge');
-  });
-}
+  const btn = el('battle-rematch-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+  
+  try {
+    // Create a fresh challenge for the rematch
+    if (!_localQuestionsCache) {
+      _localQuestionsCache = await getLocalQuestions();
+    }
+    
+    const result = await createChallenge(_localQuestionsCache);
+    _currentChallenge = result;
+    
+    // Show the challenge modal with the new code
+    const codeDisplay = document.getElementById('challenge-code-display');
+    const codeBox = document.getElementById('challenge-code-box');
+    const createActions = document.getElementById('challenge-create-actions');
+    const shareActions = document.getElementById('challenge-share-actions');
+    
+    if (codeDisplay) codeDisplay.textContent = result.code;
+    if (codeBox) codeBox.classList.remove('hidden');
+    if (createActions) createActions.classList.add('hidden');
+    if (shareActions) shareActions.classList.remove('hidden');
+    
+    // Wire WhatsApp share
+    const user = getCurrentUser();
+    const appUrl = window.location.origin;
+    const waLink = generateWhatsAppLink(result.code, user?.displayName || 'Someone', appUrl);
+    const waBtn = document.getElementById('whatsapp-share-btn');
+    if (waBtn) waBtn.onclick = () => window.open(waLink, '_blank');
+    
+    // Show the create challenge modal (not the challenge lobby screen)
+    document.getElementById('challenge-create-modal')?.classList.remove('hidden');
+    
+    showToast(`Rematch ready! Code: ${result.code}`, 'success', 4000);
+    
+    // Listen for opponent accepting
+    if (_matchUnsubscribe) _matchUnsubscribe();
+    _matchUnsubscribe = listenToMatch(result.matchId, async match => {
+      if (match.status === 'active' && match.opponentId) {
+        if (_matchUnsubscribe) { _matchUnsubscribe(); _matchUnsubscribe = null; }
+        document.getElementById('challenge-create-modal')?.classList.add('hidden');
+        showToast(`${match.opponentName} accepted! Starting rematch… ⚔️`, 'success', 3000);
+        setTimeout(() => startBattle(result.matchId, match.questions, match), 1200);
+      }
+    });
+    
+  } catch (err) {
+    showToast(err.message || 'Failed to create rematch', 'error');
+    btn.disabled = false;
+    btn.innerHTML = '🔄 Request Rematch';
+  }
+});
+             
 
 // ============================================
 // AVATAR MODAL
