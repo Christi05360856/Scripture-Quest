@@ -1113,10 +1113,10 @@ document.addEventListener('DOMContentLoaded', () => {
       onConfirm: async () => { await logout(); showScreen('landing'); }
     });
   });
-
-  document.getElementById('whatsapp-contact-btn')?.addEventListener('click', () => {
-    window.open('https://wa.me/+2349167055488text=Hi%2C%20I%20need%20help%20with%20ScriptureQuest', '_blank');
-  });
+         
+ document.getElementById('whatsapp-contact-btn')?.addEventListener('click', () => {
+    window.open('https://wa.me/+2349167055488?text=Hi%20Admin%F0%9F%91%8B%2C%20I%20need%20Help%20With%20Scripture%20Quest', '_blank');
+});
 
   document.getElementById('levelup-close-btn')?.addEventListener('click', () => {
     document.getElementById('levelup-modal')?.classList.add('hidden');
