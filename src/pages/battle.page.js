@@ -1,13 +1,28 @@
 // ============================================
 // SCRIPTUREQUEST V4 — Battle Page
-// Fixes:
-//   - Timer uses BATTLE_DURATION_SECS (2:50)
-//   - Persists matchId to localStorage (Issue 4)
-//   - Robust cleanup / destroyBattleScreen
-//   - Waiting screen uses overlay (not innerHTML replacement)
-//   - No correct answer revealed on wrong pick
-//   - Guard against double-cleanup causing blank screen
-//   - Poll for opponent completion on init (Issue 3)
+// Fixes applied in this version:
+//
+//   FIX A — "both submitted, stuck on waiting":
+//     After submitBattleAnswers resolves with bothDone:false, we immediately
+//     re-read the match doc once. If the transaction from the OTHER player
+//     has already marked it 'completed', we fire onComplete right away instead
+//     of entering the waiting state. This covers the ~100ms window where both
+//     transactions succeed near-simultaneously and the local result says
+//     bothDone:false but Firestore already has status:'completed'.
+//
+//   FIX B — FAB visibility managed centrally in app.js; battle.page only
+//     calls destroyBattleScreen cleanly (unchanged from v4, kept here for ref).
+//
+//   FIX C — _pollForOpponentDone now also catches the case where the match
+//     is already 'completed' before this player even starts (i.e. opponent
+//     submitted before this user accepted and launched the battle screen).
+//
+//   Retained from v4:
+//     - Timer uses BATTLE_DURATION_SECS (2:50)
+//     - Persists matchId to localStorage via PENDING_BATTLE_KEY
+//     - Robust destroyBattleScreen with _destroyed guard
+//     - Waiting overlay (not innerHTML replacement)
+//     - No correct answer revealed on wrong pick
 // ============================================
 
 import { submitBattleAnswers, listenToMatch, getMatchResult } from '../services/match.service.js';
@@ -15,16 +30,16 @@ import { getCurrentUser }      from '../state/store.js';
 import { mountAvatar }         from '../components/avatar.js';
 import { LETTERS, BATTLE_DURATION_SECS, PENDING_BATTLE_KEY } from '../utils/constants.js';
 
-let _matchId   = null;
-let _questions = [];
-let _answers   = {};
-let _current   = 0;
-let _timeLeft  = BATTLE_DURATION_SECS;
-let _timer     = null;
+let _matchId    = null;
+let _questions  = [];
+let _answers    = {};
+let _current    = 0;
+let _timeLeft   = BATTLE_DURATION_SECS;
+let _timer      = null;
 let _matchUnsub = null;
 let _submitting = false;
 let _callbacks  = {};
-let _destroyed  = false;        // NEW: guard against double-cleanup
+let _destroyed  = false;
 
 const el = id => document.getElementById(id);
 
@@ -33,7 +48,6 @@ const el = id => document.getElementById(id);
 // ============================================
 
 export async function initBattleScreen(matchId, questions, match, callbacks) {
-  // Always destroy previous state first
   destroyBattleScreen();
 
   _matchId    = matchId;
@@ -45,7 +59,6 @@ export async function initBattleScreen(matchId, questions, match, callbacks) {
   _callbacks  = callbacks || {};
   _destroyed  = false;
 
-  // Issue 4: Persist matchId so we can recover result after page close
   try { localStorage.setItem(PENDING_BATTLE_KEY, matchId); } catch(e) {}
 
   const user      = getCurrentUser();
@@ -55,12 +68,11 @@ export async function initBattleScreen(matchId, questions, match, callbacks) {
   const myAvatar  = isCreator ? match.creatorAvatar  : match.opponentAvatar;
   const oppAvatar = isCreator ? match.opponentAvatar : match.creatorAvatar;
 
-  if (el('battle-my-name'))         el('battle-my-name').textContent       = myName  || 'You';
-  if (el('battle-opponent-name'))   el('battle-opponent-name').textContent  = oppName || 'Opponent';
+  if (el('battle-my-name'))         el('battle-my-name').textContent      = myName  || 'You';
+  if (el('battle-opponent-name'))   el('battle-opponent-name').textContent = oppName || 'Opponent';
   if (el('battle-my-avatar'))       mountAvatar(myAvatar  || 'M01', el('battle-my-avatar'));
   if (el('battle-opponent-avatar')) mountAvatar(oppAvatar || 'M01', el('battle-opponent-avatar'));
 
-  // Wire buttons (clone to remove stale listeners)
   _wire('battle-prev-btn',   prevQ);
   _wire('battle-next-btn',   nextQ);
   _wire('battle-submit-btn', () => _submit());
@@ -68,35 +80,30 @@ export async function initBattleScreen(matchId, questions, match, callbacks) {
   renderQuestion();
   _startTimer();
 
-  // Listen for opponent finishing first
+  // Subscribe to match updates — auto-submit if opponent finishes first
   _matchUnsub = listenToMatch(matchId, matchUpdate => {
     if (_destroyed || _submitting) return;
-    if (matchUpdate.status === 'completed' && !_submitting) {
-      // Opponent finished while we were still answering — auto-submit
+    if (matchUpdate.status === 'completed') {
+      // Opponent finished and their transaction closed the match — submit ours
       _submit(true);
     }
   });
 
-  // Issue 3: If we are the second player and opponent already submitted,
-  // we need to detect that so our submit goes straight to results.
-  // Also handles case where both are on waiting screen.
+  // Check if match is already completed (e.g. opponent submitted before we even loaded)
   _pollForOpponentDone(matchId);
 }
 
-// NEW: Lightweight poll to check if opponent already finished
-// (handles async quiz flow where User A took quiz before User B accepted)
+// Re-read the doc once on init. If the match is already completed (opponent
+// submitted before this player's battle screen even loaded), fire auto-submit
+// immediately so this player doesn't sit on a blank quiz.
 async function _pollForOpponentDone(matchId) {
   try {
     const match = await getMatchResult(matchId);
     if (!match || _destroyed || _submitting) return;
-    const user = getCurrentUser();
-    const isCreator = match.creatorId === user?.uid;
-    const otherScore = isCreator ? match.opponentScore : match.creatorScore;
-    // If opponent already has a score and match isn't completed yet,
-    // we just wait — our submit will trigger completion.
-    // If match IS completed, opponent finished while we were loading.
-    if (match.status === 'completed' && !_submitting) {
-      // Small delay to let init finish before triggering callback
+    if (match.status === 'completed') {
+      // The transaction from the other player already closed this match.
+      // Our submission will hit the 'alreadyCompleted' guard in the service
+      // and return the cached result, then we navigate to battle-result.
       setTimeout(() => _submit(true), 100);
     }
   } catch (e) {
@@ -117,7 +124,7 @@ function _wire(id, fn) {
 // ============================================
 
 function renderQuestion() {
-  const q        = _questions[_current];
+  const q = _questions[_current];
   if (!q) return;
   const answered = _answers[_current] !== undefined;
 
@@ -154,7 +161,7 @@ function _selectAnswer(idx) {
   if (_submitting || _answers[_current] !== undefined) return;
   _answers[_current] = idx;
 
-  // Only colour the chosen button — never reveal correct answer
+  // Colour only the chosen button — never reveal the correct answer
   const q = _questions[_current];
   el('battle-options')?.querySelectorAll('.option').forEach((b, i) => {
     b.disabled = true;
@@ -188,7 +195,10 @@ function _startTimer() {
   const tick = () => {
     if (_timeLeft <= 0) { _submit(true); return; }
     const m = Math.floor(_timeLeft / 60), s = _timeLeft % 60;
-    if (t) { t.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; t.classList.toggle('urgent', _timeLeft <= 30); }
+    if (t) {
+      t.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      t.classList.toggle('urgent', _timeLeft <= 30);
+    }
     _timeLeft--;
   };
   tick();
@@ -203,13 +213,13 @@ async function _submit(autoSubmit = false) {
   if (_submitting || _destroyed) return;
   _submitting = true;
 
-  if (_timer) { clearInterval(_timer); _timer = null; }
-  if (_matchUnsub) { _matchUnsub(); _matchUnsub = null; }
+  if (_timer)     { clearInterval(_timer);  _timer = null; }
+  if (_matchUnsub){ _matchUnsub(); _matchUnsub = null; }
 
   const btn = el('battle-submit-btn');
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting…'; }
 
-  // Fill unanswered with null
+  // Fill unanswered questions with null
   const answers = {};
   _questions.forEach((_, i) => { answers[i] = _answers[i] !== undefined ? _answers[i] : null; });
 
@@ -217,31 +227,55 @@ async function _submit(autoSubmit = false) {
     const result = await submitBattleAnswers(_matchId, answers);
 
     if (result.bothDone) {
+      // Transaction resolved both players — fetch the final doc and navigate
       const match = await getMatchResult(_matchId);
       try { localStorage.removeItem(PENDING_BATTLE_KEY); } catch(e) {}
-      // Delay slightly to let Firestore snapshot settle
       setTimeout(() => {
         if (!_destroyed) _callbacks.onComplete?.(match);
       }, 50);
-    } else {
-      _showWaiting();
+      return;
     }
+
+    // ── FIX A ──────────────────────────────────────────────────────────────
+    // bothDone was false in our transaction, but the OTHER player's transaction
+    // may have fired concurrently and already written status:'completed'.
+    // Re-read the doc once to confirm the definitive state before showing
+    // the waiting overlay.
+    // ───────────────────────────────────────────────────────────────────────
+    let definitiveMatch = null;
+    try {
+      definitiveMatch = await getMatchResult(_matchId);
+    } catch(e) {
+      console.warn('[Battle] Re-read after submit failed (non-fatal):', e.message);
+    }
+
+    if (definitiveMatch?.status === 'completed') {
+      // The other player's transaction closed it between our read and our write.
+      // Navigate directly to results.
+      try { localStorage.removeItem(PENDING_BATTLE_KEY); } catch(e) {}
+      setTimeout(() => {
+        if (!_destroyed) _callbacks.onComplete?.(definitiveMatch);
+      }, 50);
+      return;
+    }
+
+    // Genuinely waiting for the opponent — show overlay and subscribe
+    _showWaiting();
+
   } catch(err) {
     console.error('[Battle] Submit error:', err);
     _submitting = false;
-    _showWaiting(); // Show waiting anyway — don't hang on error
+    // Show waiting rather than hanging — Firestore listener will catch completion
+    _showWaiting();
   }
 }
 
 function _showWaiting() {
-  // FIX: Use an overlay instead of replacing innerHTML.
-  // This preserves the screen-battle container and all child elements,
-  // so when onComplete fires and app.js calls showScreen('battle-result'),
-  // the DOM is intact and the result screen renders correctly.
+  // Use an overlay so the screen-battle container stays intact (avoids blank-screen
+  // race when app.js calls showScreen('battle-result') inside onComplete).
   const screen = el('screen-battle');
   if (!screen) return;
 
-  // Remove any existing waiting overlay first
   const existing = screen.querySelector('.battle-waiting-overlay');
   if (existing) existing.remove();
 
@@ -265,7 +299,6 @@ function _showWaiting() {
     </div>`;
   screen.appendChild(overlay);
 
-  // Inject spin animation if not present
   if (!document.getElementById('battle-spin-style')) {
     const style = document.createElement('style');
     style.id = 'battle-spin-style';
@@ -273,13 +306,12 @@ function _showWaiting() {
     document.head.appendChild(style);
   }
 
-  // Re-subscribe to catch completion
+  // Re-subscribe to catch completion while waiting
   _matchUnsub = listenToMatch(_matchId, match => {
     if (_destroyed) return;
     if (match.status === 'completed') {
       if (_matchUnsub) { _matchUnsub(); _matchUnsub = null; }
       try { localStorage.removeItem(PENDING_BATTLE_KEY); } catch(e) {}
-      // Delay to ensure overlay is rendered and Firestore data is settled
       setTimeout(() => {
         if (!_destroyed) _callbacks.onComplete?.(match);
       }, 100);
@@ -292,12 +324,11 @@ function _showWaiting() {
 // ============================================
 
 export function destroyBattleScreen() {
-  _destroyed = true;  // NEW: set guard flag FIRST
-  if (_timer)     { clearInterval(_timer); _timer = null; }
-  if (_matchUnsub){ _matchUnsub(); _matchUnsub = null; }
+  _destroyed = true;
+  if (_timer)      { clearInterval(_timer);  _timer = null; }
+  if (_matchUnsub) { _matchUnsub(); _matchUnsub = null; }
   _submitting = false;
 
-  // Remove waiting overlay if present
   const screen = el('screen-battle');
   if (screen) {
     const overlay = screen.querySelector('.battle-waiting-overlay');
