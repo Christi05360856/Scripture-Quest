@@ -781,6 +781,45 @@
     <span class="battle-fab-dot" id="battle-fab-dot"></span>
   </button>
 
+  <!-- ══ INCOMING CHALLENGE MODAL (direct challenge from leaderboard) ══ -->
+<!-- Shows as a full-screen overlay when someone challenges this user  -->
+<div id="incoming-challenge-overlay" class="incoming-challenge-overlay hidden">
+  <div class="incoming-challenge-card">
+    <div class="incoming-challenge-swords">⚔️</div>
+    <div class="incoming-challenge-name" id="incoming-challenger-name">Someone</div>
+    <div class="incoming-challenge-sub">challenged you to a Bible quiz battle!</div>
+ 
+    <div class="incoming-challenge-info">
+      <p>⏱️ 15 questions, under 3 minutes</p>
+      <p>🏆 Winner gets +50 XP</p>
+      <p>💪 Participants get +15 XP</p>
+    </div>
+ 
+    <div class="incoming-challenge-timer" id="incoming-challenge-timer"></div>
+ 
+    <div class="incoming-challenge-actions">
+      <button id="incoming-accept-btn" class="btn-primary btn-full" style="font-size:16px;padding:16px">
+        ⚔️ Accept Challenge!
+      </button>
+      <button id="incoming-reject-btn" class="btn-secondary btn-full">
+        Maybe Later
+      </button>
+    </div>
+  </div>
+</div>
+ 
+<!-- ══ CHALLENGE PENDING TOAST (shown to challenger while waiting for response) ══ -->
+<div id="challenge-pending-overlay" class="challenge-pending-overlay hidden">
+  <div style="font-size:22px">⏳</div>
+  <div class="challenge-pending-text">
+    <div id="challenge-pending-name">Waiting for opponent…</div>
+    <div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-top:2px">
+      They'll get a notification now
+    </div>
+  </div>
+  <button class="challenge-pending-cancel" id="challenge-pending-cancel">Cancel</button>
+</div>
+ 
 </div><!-- /#app -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
