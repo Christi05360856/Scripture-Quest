@@ -1,16 +1,16 @@
 // ============================================
 // SCRIPTUREQUEST V4 — Match Service
 // Fixes:
-//   - sendRematch creates a new match + returns it
-//   - createRematch is a clean alias
-//   - submitBattleAnswers handles async quiz flow (Issue 3)
-//   - Race-condition guard on double completion
-//   - Rematch metadata stored on old match for reliable lookup
+//   - submitBattleAnswers now uses a Firestore TRANSACTION to eliminate the
+//     read-before-write race condition where both players submit simultaneously,
+//     both see otherScore===null, and neither writes status:'completed'.
+//   - sendRematch creates a new match + returns it (unchanged from v4)
+//   - Rematch metadata stored on old match for reliable lookup (unchanged)
 // ============================================
 
 import { doc, collection, addDoc, getDoc, updateDoc,
          query, where, getDocs, onSnapshot,
-         serverTimestamp, Timestamp } from 'firebase/firestore';
+         serverTimestamp, Timestamp, runTransaction } from 'firebase/firestore';
 import { db, auth }    from '../firebase/config.js';
 import { getCurrentWeekId } from '../utils/week.js';
 
@@ -65,8 +65,8 @@ export async function acceptChallenge(matchId) {
   const matchSnap = await getDoc(matchRef);
   if (!matchSnap.exists()) throw new Error('Challenge not found.');
   const match = matchSnap.data();
-  if (match.status !== 'waiting')         throw new Error('Challenge no longer available.');
-  if (match.creatorId === user.uid)       throw new Error("You can't accept your own challenge!");
+  if (match.status !== 'waiting')              throw new Error('Challenge no longer available.');
+  if (match.creatorId === user.uid)            throw new Error("You can't accept your own challenge!");
   if (match.expiresAt.toMillis() < Date.now()) throw new Error('Challenge has expired.');
   const profile = await getDoc(doc(db, 'users', user.uid));
   const { displayName = 'Anonymous', avatarId = 'M01' } = profile.data() || {};
@@ -74,63 +74,101 @@ export async function acceptChallenge(matchId) {
   return { matchId, questions: match.questions };
 }
 
+// ─────────────────────────────────────────────────────────────────
+// submitBattleAnswers — THE KEY FIX
+//
+// Root cause of "both submitted, neither got results":
+//   Player A reads doc  → opponentScore is null  (Player B hasn't written yet)
+//   Player B reads doc  → creatorScore  is null  (Player A hasn't written yet)
+//   Player A writes own score, no completion logic fires
+//   Player B writes own score, no completion logic fires
+//   → status stays 'active' forever
+//
+// Fix: wrap the read+write in a Firestore TRANSACTION.
+//   The transaction retries automatically if another client mutates the doc
+//   between the read and the write, so exactly ONE player ends up seeing
+//   otherScore !== null and writes status:'completed'.
+//
+// Secondary fix: if the match is ALREADY 'completed' when we enter (e.g. we
+//   are the second player and the transaction from player 1 already closed it),
+//   we return the cached result immediately without writing anything.
+// ─────────────────────────────────────────────────────────────────
 export async function submitBattleAnswers(matchId, userAnswers) {
   const user = auth.currentUser;
   if (!user) throw new Error('Not logged in.');
-  const matchRef  = doc(db, 'matches', matchId);
-  const matchSnap = await getDoc(matchRef);
-  if (!matchSnap.exists()) throw new Error('Match not found.');
 
-  const match     = matchSnap.data();
+  const matchRef = doc(db, 'matches', matchId);
 
-  // FIX: Race-condition guard — if match already completed, return cached result
-  if (match.status === 'completed') {
+  // runTransaction gives us a consistent read+write with automatic retries.
+  // The returned value is what we surface to the caller.
+  const result = await runTransaction(db, async (tx) => {
+    const matchSnap = await tx.get(matchRef);
+    if (!matchSnap.exists()) throw new Error('Match not found.');
+
+    const match     = matchSnap.data();
     const isCreator = match.creatorId === user.uid;
-    const myScore   = isCreator ? match.creatorScore : match.opponentScore;
-    const myPct     = isCreator ? match.creatorPct   : match.opponentPct;
-    return {
-      score: myScore ?? 0,
-      percentage: myPct ?? 0,
-      totalQuestions: (match.questions || []).length,
-      bothDone: true,
-      matchId,
-      alreadyCompleted: true
-    };
-  }
+    const questions = match.questions || [];
 
-  const isCreator = match.creatorId === user.uid;
-  const questions = match.questions || [];
+    // ── Guard: already completed (race won by the other player's transaction) ──
+    if (match.status === 'completed') {
+      const myScore = isCreator ? match.creatorScore : match.opponentScore;
+      const myPct   = isCreator ? match.creatorPct   : match.opponentPct;
+      return {
+        score: myScore ?? 0,
+        percentage: myPct ?? 0,
+        totalQuestions: questions.length,
+        bothDone: true,
+        matchId,
+        alreadyCompleted: true
+      };
+    }
 
-  let score = 0;
-  questions.forEach((q, i) => { if (userAnswers[i] === q.correctAnswer) score++; });
-  const pct = Math.round((score / questions.length) * 100);
+    // ── Score this player's answers ──
+    let score = 0;
+    questions.forEach((q, i) => { if (userAnswers[i] === q.correctAnswer) score++; });
+    const pct = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
 
-  const updates = isCreator
-    ? { creatorAnswers: userAnswers, creatorScore: score, creatorPct: pct }
-    : { opponentAnswers: userAnswers, opponentScore: score, opponentPct: pct };
+    // ── Check whether the OTHER player already has a score ──
+    // Because we are inside a transaction, this read is consistent with the
+    // upcoming write — no other transaction can interleave between them.
+    const otherScore = isCreator ? match.opponentScore : match.creatorScore;
+    const bothDone   = otherScore !== null && otherScore !== undefined;
 
-  // FIX (Issue 3): Check if OTHER player already submitted.
-  // The other player's score being non-null means they already finished.
-  // But also handle the case where status is already 'completed' (guarded above).
-  const otherScore = isCreator ? match.opponentScore : match.creatorScore;
-  const bothDone   = otherScore !== null && otherScore !== undefined;
+    const updates = isCreator
+      ? { creatorAnswers: userAnswers, creatorScore: score, creatorPct: pct }
+      : { opponentAnswers: userAnswers, opponentScore: score, opponentPct: pct };
 
-  if (bothDone) {
-    const cs = isCreator ? score : match.creatorScore;
-    const os = isCreator ? match.opponentScore : score;
-    const winnerId   = cs > os ? match.creatorId : os > cs ? match.opponentId : 'draw';
-    const winnerName = winnerId === match.creatorId ? match.creatorName
-                     : winnerId === match.opponentId ? match.opponentName : null;
-    const resultText = winnerId === 'draw' ? "🤝 It's a draw! Well played!"
-                                           : `🏆 ${winnerName} wins the battle!`;
-    Object.assign(updates, {
-      status: 'completed', winnerId, completedAt: serverTimestamp(),
-      messages: [...(match.messages || []), { type:'result', text: resultText, timestamp: Date.now() }]
-    });
-  }
+    if (bothDone) {
+      // We are the second player to finish — resolve the match now.
+      const cs = isCreator ? score          : match.creatorScore;
+      const os = isCreator ? match.opponentScore : score;
+      const winnerId   = cs > os ? match.creatorId
+                       : os > cs ? match.opponentId
+                       : 'draw';
+      const winnerName = winnerId === match.creatorId  ? match.creatorName
+                       : winnerId === match.opponentId ? match.opponentName
+                       : null;
+      const resultText = winnerId === 'draw'
+        ? "🤝 It's a draw! Well played!"
+        : `🏆 ${winnerName} wins the battle!`;
 
-  await updateDoc(matchRef, updates);
-  return { score, percentage: pct, totalQuestions: questions.length, bothDone, matchId };
+      Object.assign(updates, {
+        status: 'completed',
+        winnerId,
+        completedAt: serverTimestamp(),
+        messages: [
+          ...(match.messages || []),
+          { type: 'result', text: resultText, timestamp: Date.now() }
+        ]
+      });
+    }
+
+    tx.update(matchRef, updates);
+
+    return { score, percentage: pct, totalQuestions: questions.length, bothDone, matchId };
+  });
+
+  return result;
 }
 
 export async function getMatchResult(matchId) {
@@ -145,29 +183,24 @@ export function listenToMatch(matchId, onUpdate) {
   });
 }
 
-// Issue 3: sendRematch now creates a FRESH match and returns it
-// Both players get the new code — challenger shares it, opponent joins
+// sendRematch — creates a FRESH match and stores metadata on the old one
+// so the opponent can discover the rematch code via listenToMatch.
 export async function sendRematch(oldMatchId, questions) {
   const user = auth.currentUser;
   if (!user) throw new Error('Not logged in.');
 
-  // Get old match for participant info
   const oldSnap = await getDoc(doc(db, 'matches', oldMatchId));
   if (!oldSnap.exists()) throw new Error('Original match not found.');
   const old = oldSnap.data();
 
-  // Use provided questions or recycle the same questions
   const pool = questions?.length ? questions : old.questions;
   if (!pool?.length) throw new Error('No questions available for rematch.');
 
-  // Shuffle for variety
-  const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, 15);
-
+  const shuffled  = [...pool].sort(() => Math.random() - 0.5).slice(0, 15);
   const code      = generateCode();
   const expiresAt = Timestamp.fromMillis(Date.now() + CHALLENGE_TTL_MS);
 
-  // Creator of rematch is whoever calls this
-  const profile   = await getDoc(doc(db, 'users', user.uid));
+  const profile = await getDoc(doc(db, 'users', user.uid));
   const { displayName = 'Anonymous', avatarId = 'M01' } = profile.data() || {};
 
   const matchRef = await addDoc(collection(db, 'matches'), {
@@ -184,8 +217,8 @@ export async function sendRematch(oldMatchId, questions) {
     messages: [{ type:'rematch', text:`🔄 ${displayName} wants a rematch!`, timestamp: Date.now() }]
   });
 
-  // FIX: Store rematch metadata on the OLD match so opponent can find it
-  const oldMessages = old.messages || [];
+  // Store rematch metadata on old match so opponent detects it via listenToMatch
+  const oldMessages = [...(old.messages || [])];
   oldMessages.push({
     type: 'rematch',
     text: `🔄 ${displayName} started a rematch! Code: ${code}`,
