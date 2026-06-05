@@ -1,14 +1,10 @@
 // ============================================
 // SCRIPTUREQUEST V4 — Match Service
-// KEY CHANGE: Pure Firestore submit — NO Cloud Function.
-// submitBattleAnswers now:
-//   1. Writes own score + done flag atomically via updateDoc
-//   2. Immediately re-reads the doc
-//   3. If bothDone, computes winner and writes status:'completed'
-//   4. Returns result to caller
-//
-// This eliminates the CF failure path, the done-flag mismatch,
-// and the subscription gap in battle.page.
+// OPTION A: Pure Firestore with onWrite trigger.
+// submitBattleAnswers ONLY writes score + done flag.
+// The Cloud Function trigger (onMatchUpdate) closes
+// the match server-side when both players submit.
+// No client-side CF call. No races. No CORS.
 // ============================================
 
 import { doc, collection, addDoc, getDoc, updateDoc,
@@ -46,7 +42,7 @@ export async function createChallenge(questions) {
     creatorAnswers: {}, opponentAnswers: {},
     creatorScore: null, opponentScore: null,
     creatorPct: null, opponentPct: null,
-    creatorDone: false, opponentDone: false,   // ← explicit init
+    creatorDone: false, opponentDone: false,
     winnerId: null, weekId: getCurrentWeekId(),
     createdAt: serverTimestamp(), expiresAt,
     challengeType: 'code',
@@ -84,7 +80,8 @@ export async function acceptChallenge(matchId) {
 }
 
 // ============================================
-// SUBMIT — Pure Firestore, NO Cloud Function
+// SUBMIT — Write score + done flag ONLY.
+// The onWrite trigger closes the match.
 // ============================================
 export async function submitBattleAnswers(matchId, userAnswers) {
   const user = auth.currentUser;
@@ -98,7 +95,7 @@ export async function submitBattleAnswers(matchId, userAnswers) {
   const isCreator = match.creatorId === user.uid;
   const questions = match.questions || [];
 
-  // Already completed — return cached result
+  // Already completed
   if (match.status === 'completed') {
     return {
       score:          isCreator ? match.creatorScore : match.opponentScore,
@@ -113,39 +110,14 @@ export async function submitBattleAnswers(matchId, userAnswers) {
   questions.forEach((q, i) => { if (userAnswers[i] === q.correctAnswer) score++; });
   const pct = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
 
-  // Step 1: Write own score AND done flag together
+  // Write score + done flag. Trigger will handle completion.
   const updates = isCreator
     ? { creatorAnswers: userAnswers, creatorScore: score, creatorPct: pct, creatorDone: true, creatorDoneAt: serverTimestamp() }
     : { opponentAnswers: userAnswers, opponentScore: score, opponentPct: pct, opponentDone: true, opponentDoneAt: serverTimestamp() };
+
   await updateDoc(matchRef, updates);
 
-  // Step 2: Re-read to check if both are done
-  const updatedSnap = await getDoc(matchRef);
-  const updated     = updatedSnap.data();
-  const bothDone    = updated.creatorDone && updated.opponentDone;
-
-  if (bothDone) {
-    // Compute winner and close match
-    const creatorPct  = updated.creatorPct  ?? 0;
-    const opponentPct = updated.opponentPct ?? 0;
-    let winnerId;
-    if (creatorPct > opponentPct)      winnerId = updated.creatorId;
-    else if (opponentPct > creatorPct) winnerId = updated.opponentId;
-    else                               winnerId = 'draw';
-
-    await updateDoc(matchRef, {
-      status: 'completed',
-      winnerId,
-      completedAt: serverTimestamp()
-    });
-
-    return {
-      score, percentage: pct, totalQuestions: questions.length,
-      bothDone: true, matchId
-    };
-  }
-
-  // Not both done yet — caller will poll/wait
+  // Return local result. Client waits for onSnapshot to fire when trigger closes match.
   return {
     score, percentage: pct, totalQuestions: questions.length,
     bothDone: false, matchId
@@ -185,7 +157,7 @@ export async function sendRematch(oldMatchId, questions) {
     creatorAnswers: {}, opponentAnswers: {},
     creatorScore: null, opponentScore: null,
     creatorPct: null, opponentPct: null,
-    creatorDone: false, opponentDone: false,   // ← explicit init
+    creatorDone: false, opponentDone: false,
     winnerId: null, weekId: getCurrentWeekId(),
     createdAt: serverTimestamp(), expiresAt,
     challengeType: 'code', rematchOf: oldMatchId,
