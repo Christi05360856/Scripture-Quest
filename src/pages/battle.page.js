@@ -193,7 +193,7 @@ function _startTimer() {
 
 // ============================================
 // SUBMIT
-// FIX A: CF failure → direct Firestore fallback
+// FIX A: CF failure -> direct Firestore fallback
 // ============================================
 
 async function _submit(autoSubmit = false) {
@@ -206,7 +206,7 @@ async function _submit(autoSubmit = false) {
   const btn = el('battle-submit-btn');
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting…';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
   }
 
   // Fill unanswered questions with null
@@ -216,14 +216,13 @@ async function _submit(autoSubmit = false) {
   });
 
   try {
-    // ── Attempt 1: Cloud Function via match.service ──
+    // Attempt 1: Cloud Function via match.service
     let result = null;
     try {
       result = await submitBattleAnswers(_matchId, answers);
     } catch (cfErr) {
       console.warn('[Battle] CF submit failed, trying Firestore fallback:', cfErr.message);
-      // ── FIX A: Direct Firestore fallback ──
-      // Write answers directly; the CF or onSnapshot will complete the match
+      // FIX A: Direct Firestore fallback
       result = await _submitDirectToFirestore(_matchId, answers);
     }
 
@@ -261,9 +260,6 @@ async function _submit(autoSubmit = false) {
 // ============================================
 // FIX A: Direct Firestore answer write
 // Used when completeBattle CF is unreachable.
-// Writes the player's answers + score to the
-// match doc. The opponent's equivalent write
-// will trigger the onSnapshot to show results.
 // ============================================
 
 async function _submitDirectToFirestore(matchId, answers) {
@@ -272,7 +268,7 @@ async function _submitDirectToFirestore(matchId, answers) {
 
   const { doc, getDoc, updateDoc, serverTimestamp } =
     await import('firebase/firestore');
-  const { db } = await import('./firebase/config.js');
+  const { db } = await import('../firebase/config.js');
 
   const matchRef  = doc(db, 'matches', matchId);
   const matchSnap = await getDoc(matchRef);
@@ -282,7 +278,6 @@ async function _submitDirectToFirestore(matchId, answers) {
   const questions = match.questions || [];
   const isCreator = match.creatorId === user.uid;
 
-  // Calculate score
   let correct = 0;
   questions.forEach((q, i) => {
     if (answers[i] !== null && answers[i] === q.correctAnswer) correct++;
@@ -291,47 +286,27 @@ async function _submitDirectToFirestore(matchId, answers) {
   const pct   = Math.round((correct / total) * 100);
 
   const updateData = isCreator
-    ? {
-        creatorAnswers:  answers,
-        creatorScore:    correct,
-        creatorPct:      pct,
-        creatorDone:     true,
-        creatorDoneAt:   serverTimestamp()
-      }
-    : {
-        opponentAnswers: answers,
-        opponentScore:   correct,
-        opponentPct:     pct,
-        opponentDone:    true,
-        opponentDoneAt:  serverTimestamp()
-      };
+    ? { creatorAnswers: answers, creatorScore: correct, creatorPct: pct, creatorDone: true, creatorDoneAt: serverTimestamp() }
+    : { opponentAnswers: answers, opponentScore: correct, opponentPct: pct, opponentDone: true, opponentDoneAt: serverTimestamp() };
 
   await updateDoc(matchRef, updateData);
 
-  // Re-read to check if both are now done
   const updatedSnap = await getDoc(matchRef);
   const updated     = updatedSnap.data();
   const bothDone    = updated.creatorDone && updated.opponentDone;
 
-  // If both done, determine winner and mark completed
   if (bothDone) {
     const creatorPct  = updated.creatorPct  ?? 0;
     const opponentPct = updated.opponentPct ?? 0;
     let winnerId;
-    if (creatorPct > opponentPct)       winnerId = updated.creatorId;
-    else if (opponentPct > creatorPct)  winnerId = updated.opponentId;
-    else                                winnerId = 'draw';
+    if (creatorPct > opponentPct)      winnerId = updated.creatorId;
+    else if (opponentPct > creatorPct) winnerId = updated.opponentId;
+    else                               winnerId = 'draw';
 
-    await updateDoc(matchRef, {
-      status:      'completed',
-      winnerId,
-      completedAt: serverTimestamp()
-    });
-
+    await updateDoc(matchRef, { status: 'completed', winnerId, completedAt: serverTimestamp() });
     return { bothDone: true };
   }
 
-  // Mark match active if it was still pending/waiting
   if (match.status === 'pending' || match.status === 'waiting') {
     await updateDoc(matchRef, { status: 'active' }).catch(() => {});
   }
@@ -352,27 +327,15 @@ function _showWaiting() {
 
   const overlay = document.createElement('div');
   overlay.className = 'battle-waiting-overlay';
-  overlay.style.cssText = `
-    position:absolute; inset:0; z-index:50;
-    background:var(--bg-primary, #fff);
-    display:flex; align-items:center; justify-content:center;
-    padding:20px;
-  `;
+  overlay.style.cssText = 'position:absolute;inset:0;z-index:50;background:var(--bg-primary,#fff);display:flex;align-items:center;justify-content:center;padding:20px;';
   overlay.innerHTML = `
     <div style="max-width:480px;text-align:center;padding:40px 20px">
       <div style="font-size:64px;margin-bottom:16px">⏳</div>
-      <h2 style="font-size:22px;font-weight:900;color:var(--text-primary);margin-bottom:8px">
-        Answers Submitted!
-      </h2>
-      <p style="color:var(--text-muted);font-size:15px;margin-bottom:8px">
-        Waiting for your opponent to finish…
-      </p>
-      <div class="spinner" style="margin:20px auto;width:40px;height:40px;
-           border:4px solid var(--border);border-top-color:var(--accent-primary);
-           border-radius:50%;animation:spin 1s linear infinite"></div>
+      <h2 style="font-size:22px;font-weight:900;color:var(--text-primary);margin-bottom:8px">Answers Submitted!</h2>
+      <p style="color:var(--text-muted);font-size:15px;margin-bottom:8px">Waiting for your opponent to finish…</p>
+      <div class="spinner" style="margin:20px auto;width:40px;height:40px;border:4px solid var(--border);border-top-color:var(--accent-primary);border-radius:50%;animation:spin 1s linear infinite"></div>
       <p style="font-size:13px;color:var(--text-muted);margin-top:8px">
-        You can safely close this page.<br>
-        We'll show results next time you open the app. 📱
+        You can safely close this page.<br>We'll show results next time you open the app. 📱
       </p>
     </div>`;
   screen.appendChild(overlay);
@@ -380,11 +343,10 @@ function _showWaiting() {
   if (!document.getElementById('battle-spin-style')) {
     const style = document.createElement('style');
     style.id = 'battle-spin-style';
-    style.textContent = `@keyframes spin{to{transform:rotate(360deg)}}`;
+    style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
     document.head.appendChild(style);
   }
 
-  // Re-subscribe to catch completion while waiting
   _matchUnsub = listenToMatch(_matchId, match => {
     if (_destroyed) return;
     if (match.status === 'completed') {
