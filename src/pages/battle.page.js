@@ -1,15 +1,15 @@
 // ============================================
 // SCRIPTUREQUEST V4 — Battle Page
-// OPTION A: Firestore onWrite trigger.
+// SPARK PLAN COMPATIBLE — NO Cloud Functions.
 // submitBattleAnswers writes score + done flag.
-// The server-side trigger closes the match.
-// Client just waits for onSnapshot to fire.
+// Second player to submit closes the match.
+// Client waits for onSnapshot to fire.
 //
 // FIXES:
-//   - No Cloud Function call from client (no CORS/no timeout)
-//   - No race condition (single server-side closer)
+//   - No Cloud Function call from client
 //   - Listener stays alive entire battle lifecycle
-//   - No polling loop needed — onSnapshot handles everything
+//   - No polling loop — onSnapshot handles completion
+//   - _completed guard prevents double onComplete
 // ============================================
 
 import { submitBattleAnswers, listenToMatch, getMatchResult } from '../services/match.service.js';
@@ -70,16 +70,29 @@ export async function initBattleScreen(matchId, questions, match, callbacks) {
   _startTimer();
 
   // Start the match listener ONCE. Keep it alive for the entire battle.
-  // It will fire when the onWrite trigger sets status: 'completed'.
+  // It will fire when the second player submits and the match closes.
   _matchUnsub = listenToMatch(matchId, matchUpdate => {
     if (_destroyed || _completed) return;
 
-    // Catch already-completed before we even started (rare but possible)
     if (matchUpdate.status === 'completed') {
       _finish(matchUpdate);
-      return;
     }
   });
+
+  // Also check if already completed before we loaded
+  _pollOnceForCompletion(matchId);
+}
+
+async function _pollOnceForCompletion(matchId) {
+  if (_destroyed || _completed) return;
+  try {
+    const match = await getMatchResult(matchId);
+    if (match?.status === 'completed') {
+      _finish(match);
+    }
+  } catch (e) {
+    console.warn('[Battle] Pre-load poll error:', e.message);
+  }
 }
 
 function _finish(match) {
@@ -91,7 +104,6 @@ function _finish(match) {
 
   try { localStorage.removeItem(PENDING_BATTLE_KEY); } catch(e) {}
 
-  // Small delay to let UI settle
   setTimeout(() => {
     if (!_destroyed) _callbacks.onComplete?.(match);
   }, 100);
@@ -191,7 +203,7 @@ function _startTimer() {
 
 // ============================================
 // SUBMIT
-// Writes score + done. Trigger closes match.
+// Writes score + done. Second player closes match.
 // Listener stays alive — onSnapshot fires → _finish()
 // ============================================
 
@@ -213,10 +225,19 @@ async function _submit(autoSubmit = false) {
   });
 
   try {
-    await submitBattleAnswers(_matchId, answers);
-    // Done writing. Now we wait for the onWrite trigger to set status: 'completed'.
-    // The onSnapshot listener (alive since init) will catch it and call _finish().
+    const result = await submitBattleAnswers(_matchId, answers);
+
+    if (result?.bothDone) {
+      // We were the second player — match is already closed
+      const match = await getMatchResult(_matchId);
+      _finish(match);
+      return;
+    }
+
+    // We were the first player — show waiting overlay
+    // onSnapshot will fire when opponent submits and closes match
     _showWaiting();
+
   } catch (err) {
     console.error('[Battle] Submit error:', err);
     _submitting = false;
