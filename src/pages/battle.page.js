@@ -2,24 +2,27 @@
 // SCRIPTUREQUEST V4 — Battle Page
 // FIXES IN THIS VERSION:
 //
-//   FIX A — CF failure fallback:
-//     submitBattleAnswers calls the completeBattle
-//     Cloud Function, but if it fails with CORS or
-//     an internal error, we now fall back to writing
-//     answers directly to Firestore. The onSnapshot
-//     listener then picks up the completion naturally.
-//     This fixes "no result shown after battle" when
-//     the CF is unreachable.
+//   FIX A — No Cloud Function dependency:
+//     submitBattleAnswers now uses pure Firestore.
+//     Removed CF fallback; match.service handles
+//     winner computation directly.
 //
-//   FIX B — Both submitted stuck:
-//     After submitBattleAnswers resolves with
-//     bothDone:false, we re-read the doc once to catch
-//     the race where the other player's transaction
-//     already closed it. (Unchanged from v4, kept.)
+//   FIX B — Subscription gap eliminated:
+//     The match listener is NEVER torn down during
+//     submit. It stays alive so onSnapshot can fire
+//     and trigger onComplete even while we await.
 //
-//   FIX C — Already completed before load:
-//     _pollForOpponentDone catches matches already
-//     completed before this player opened the screen.
+//   FIX C — Guaranteed re-read loop:
+//     After bothDone:false, we poll getMatchResult
+//     with exponential back-off (250ms → 2000ms) for
+//     up to 30 seconds instead of a single read.
+//     This catches the other player's write even on
+//     high-latency mobile networks.
+//
+//   FIX D — Race-safe onComplete:
+//     onComplete is guarded by a _completed flag so
+//     it can only fire once, even if both the poll
+//     loop and onSnapshot trigger simultaneously.
 // ============================================
 
 import { submitBattleAnswers, listenToMatch, getMatchResult } from '../services/match.service.js';
@@ -37,6 +40,7 @@ let _matchUnsub = null;
 let _submitting = false;
 let _callbacks  = {};
 let _destroyed  = false;
+let _completed  = false;   // ← FIX D: guards against double onComplete
 
 const el = id => document.getElementById(id);
 
@@ -55,6 +59,7 @@ export async function initBattleScreen(matchId, questions, match, callbacks) {
   _submitting = false;
   _callbacks  = callbacks || {};
   _destroyed  = false;
+  _completed  = false;
 
   try { localStorage.setItem(PENDING_BATTLE_KEY, matchId); } catch(e) {}
 
@@ -77,22 +82,35 @@ export async function initBattleScreen(matchId, questions, match, callbacks) {
   renderQuestion();
   _startTimer();
 
+  // FIX B: Start listener once, keep it alive. Never unsub during submit.
   _matchUnsub = listenToMatch(matchId, matchUpdate => {
-    if (_destroyed || _submitting) return;
+    if (_destroyed || _completed) return;
     if (matchUpdate.status === 'completed') {
-      _submit(true);
+      _completed = true;
+      _cleanup();
+      try { localStorage.removeItem(PENDING_BATTLE_KEY); } catch(e) {}
+      setTimeout(() => {
+        if (!_destroyed) _callbacks.onComplete?.(matchUpdate);
+      }, 50);
     }
   });
 
+  // Also poll once on init in case match already completed before we loaded
   _pollForOpponentDone(matchId);
 }
 
 async function _pollForOpponentDone(matchId) {
+  if (_destroyed || _completed) return;
   try {
     const match = await getMatchResult(matchId);
-    if (!match || _destroyed || _submitting) return;
+    if (!match || _destroyed || _completed) return;
     if (match.status === 'completed') {
-      setTimeout(() => _submit(true), 100);
+      _completed = true;
+      _cleanup();
+      try { localStorage.removeItem(PENDING_BATTLE_KEY); } catch(e) {}
+      setTimeout(() => {
+        if (!_destroyed) _callbacks.onComplete?.(match);
+      }, 100);
     }
   } catch (e) {
     console.warn('[Battle] Poll error:', e.message);
@@ -193,15 +211,16 @@ function _startTimer() {
 
 // ============================================
 // SUBMIT
-// FIX A: CF failure -> direct Firestore fallback
+// FIX B: Listener stays alive — no unsub gap.
+// FIX C: Polling loop instead of single re-read.
 // ============================================
 
 async function _submit(autoSubmit = false) {
-  if (_submitting || _destroyed) return;
+  if (_submitting || _destroyed || _completed) return;
   _submitting = true;
 
-  if (_timer)      { clearInterval(_timer);  _timer = null; }
-  if (_matchUnsub) { _matchUnsub(); _matchUnsub = null; }
+  if (_timer) { clearInterval(_timer); _timer = null; }
+  // FIX B: DO NOT call _matchUnsub() here. Keep listener alive.
 
   const btn = el('battle-submit-btn');
   if (btn) {
@@ -216,106 +235,83 @@ async function _submit(autoSubmit = false) {
   });
 
   try {
-    // Attempt 1: Cloud Function via match.service
-    let result = null;
-    try {
-      result = await submitBattleAnswers(_matchId, answers);
-    } catch (cfErr) {
-      console.warn('[Battle] CF submit failed, trying Firestore fallback:', cfErr.message);
-      // FIX A: Direct Firestore fallback
-      result = await _submitDirectToFirestore(_matchId, answers);
-    }
+    const result = await submitBattleAnswers(_matchId, answers);
 
     if (result?.bothDone) {
-      const match = await getMatchResult(_matchId);
+      _completed = true;
+      _cleanup();
       try { localStorage.removeItem(PENDING_BATTLE_KEY); } catch(e) {}
+      const match = await getMatchResult(_matchId);
       setTimeout(() => {
         if (!_destroyed) _callbacks.onComplete?.(match);
       }, 50);
       return;
     }
 
-    // Re-read once — other player may have already completed it
-    let definitiveMatch = null;
-    try { definitiveMatch = await getMatchResult(_matchId); } catch(e) {}
+    // FIX C: Guaranteed re-read loop with exponential back-off
+    // Poll for up to 30 seconds instead of a single read
+    const found = await _pollUntilCompleted(_matchId, 30000);
 
-    if (definitiveMatch?.status === 'completed') {
-      try { localStorage.removeItem(PENDING_BATTLE_KEY); } catch(e) {}
-      setTimeout(() => {
-        if (!_destroyed) _callbacks.onComplete?.(definitiveMatch);
-      }, 50);
+    if (found) {
+      // onComplete already fired via onSnapshot or _pollUntilCompleted
       return;
     }
 
-    // Genuinely waiting — show overlay
+    // Genuinely waiting — show overlay. Listener is still alive.
     _showWaiting();
 
   } catch(err) {
     console.error('[Battle] Submit error:', err);
     _submitting = false;
+    // Even on error, keep listener alive and show waiting
     _showWaiting();
   }
 }
 
 // ============================================
-// FIX A: Direct Firestore answer write
-// Used when completeBattle CF is unreachable.
+// FIX C: Poll until completed or timeout
+// Exponential back-off: 250ms → 500ms → 1000ms → 2000ms (cap)
 // ============================================
 
-async function _submitDirectToFirestore(matchId, answers) {
-  const user = getCurrentUser();
-  if (!user) throw new Error('Not authenticated');
+async function _pollUntilCompleted(matchId, timeoutMs = 30000) {
+  const start = Date.now();
+  let delay   = 250;
 
-  const { doc, getDoc, updateDoc, serverTimestamp } =
-    await import('firebase/firestore');
-  const { db } = await import('../firebase/config.js');
+  while (Date.now() - start < timeoutMs) {
+    if (_destroyed || _completed) return true;
 
-  const matchRef  = doc(db, 'matches', matchId);
-  const matchSnap = await getDoc(matchRef);
-  if (!matchSnap.exists()) throw new Error('Match not found');
+    try {
+      const match = await getMatchResult(matchId);
+      if (match?.status === 'completed') {
+        if (!_completed) {
+          _completed = true;
+          _cleanup();
+          try { localStorage.removeItem(PENDING_BATTLE_KEY); } catch(e) {}
+          setTimeout(() => {
+            if (!_destroyed) _callbacks.onComplete?.(match);
+          }, 50);
+        }
+        return true;
+      }
+    } catch (e) {
+      console.warn('[Battle] Poll tick error:', e.message);
+    }
 
-  const match     = matchSnap.data();
-  const questions = match.questions || [];
-  const isCreator = match.creatorId === user.uid;
-
-  let correct = 0;
-  questions.forEach((q, i) => {
-    if (answers[i] !== null && answers[i] === q.correctAnswer) correct++;
-  });
-  const total = questions.length || 15;
-  const pct   = Math.round((correct / total) * 100);
-
-  const updateData = isCreator
-    ? { creatorAnswers: answers, creatorScore: correct, creatorPct: pct, creatorDone: true, creatorDoneAt: serverTimestamp() }
-    : { opponentAnswers: answers, opponentScore: correct, opponentPct: pct, opponentDone: true, opponentDoneAt: serverTimestamp() };
-
-  await updateDoc(matchRef, updateData);
-
-  const updatedSnap = await getDoc(matchRef);
-  const updated     = updatedSnap.data();
-  const bothDone    = updated.creatorDone && updated.opponentDone;
-
-  if (bothDone) {
-    const creatorPct  = updated.creatorPct  ?? 0;
-    const opponentPct = updated.opponentPct ?? 0;
-    let winnerId;
-    if (creatorPct > opponentPct)      winnerId = updated.creatorId;
-    else if (opponentPct > creatorPct) winnerId = updated.opponentId;
-    else                               winnerId = 'draw';
-
-    await updateDoc(matchRef, { status: 'completed', winnerId, completedAt: serverTimestamp() });
-    return { bothDone: true };
+    await _sleep(delay);
+    delay = Math.min(delay * 2, 2000);  // exponential cap at 2s
   }
 
-  if (match.status === 'pending' || match.status === 'waiting') {
-    await updateDoc(matchRef, { status: 'active' }).catch(() => {});
-  }
+  return false;  // timeout reached
+}
 
-  return { bothDone: false };
+function _sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
 }
 
 // ============================================
 // WAITING OVERLAY
+// Listener stays alive; onSnapshot will fire
+// when opponent finishes.
 // ============================================
 
 function _showWaiting() {
@@ -347,16 +343,17 @@ function _showWaiting() {
     document.head.appendChild(style);
   }
 
-  _matchUnsub = listenToMatch(_matchId, match => {
-    if (_destroyed) return;
-    if (match.status === 'completed') {
-      if (_matchUnsub) { _matchUnsub(); _matchUnsub = null; }
-      try { localStorage.removeItem(PENDING_BATTLE_KEY); } catch(e) {}
-      setTimeout(() => {
-        if (!_destroyed) _callbacks.onComplete?.(match);
-      }, 100);
-    }
-  });
+  // NOTE: _matchUnsub is STILL active from init. No need to re-subscribe.
+  // onSnapshot will call onComplete when opponent finishes.
+}
+
+// ============================================
+// CLEANUP HELPERS
+// ============================================
+
+function _cleanup() {
+  if (_timer) { clearInterval(_timer); _timer = null; }
+  _submitting = false;
 }
 
 // ============================================
@@ -365,6 +362,7 @@ function _showWaiting() {
 
 export function destroyBattleScreen() {
   _destroyed = true;
+  _completed = false;
   if (_timer)      { clearInterval(_timer);  _timer = null; }
   if (_matchUnsub) { _matchUnsub(); _matchUnsub = null; }
   _submitting = false;
