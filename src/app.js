@@ -303,7 +303,7 @@ async function _loadBattleHistoryIntoHub(uid) {
         resultBg     = 'var(--bg-subtle)';
         resultBorder = 'var(--border)';
       } else {
-        resultChip   = '— Unknown';
+        resultChip   = '—';
       }
 
       const score = (m.status === 'completed' && myPct !== null)
@@ -311,28 +311,36 @@ async function _loadBattleHistoryIntoHub(uid) {
         : '<span style="color:var(--text-muted)">—</span>';
 
       const safeOpp = escapeHTML(oppName);
+      const mId     = m.matchId || m.id || '';
+
+      // Cancel button for any stuck/ghost active or pending match
+      const canCancel = (m.status === 'active' || m.status === 'pending' || m.status === 'waiting') && mId;
+      const cancelBtn = canCancel
+        ? `<button
+             onclick="window.SQ&&SQ.cancelMatchById('${mId}')"
+             style="flex-shrink:0;background:var(--error,#ef4444);color:white;border:none;
+                    border-radius:20px;padding:4px 10px;font-size:11px;font-weight:800;
+                    cursor:pointer;font-family:inherit;margin-left:4px"
+             title="Cancel this match">✕ Cancel</button>`
+        : '';
 
       return `
         <div style="
-          display:flex; align-items:center; gap:10px;
+          display:flex;align-items:center;gap:10px;
           padding:10px 12px;
-          background:var(--bg-card, #fff);
+          background:var(--bg-card,#fff);
           border:1px solid var(--border);
-          border-radius:var(--radius-md, 10px);
+          border-radius:var(--radius-md,10px);
           margin-bottom:8px;
-          transition:background 0.15s;
         ">
-          <!-- Opponent avatar placeholder -->
-          <div style="
-            width:36px; height:36px; border-radius:50%;
-            background:var(--accent-warm-bg, #fef3c7);
-            display:flex; align-items:center; justify-content:center;
-            font-size:16px; flex-shrink:0;
-          ">⚔️</div>
+          <div style="width:36px;height:36px;border-radius:50%;
+               background:var(--accent-warm-bg,#fef3c7);
+               display:flex;align-items:center;justify-content:center;
+               font-size:16px;flex-shrink:0">⚔️</div>
 
-          <!-- Name + score -->
-          <div style="flex:1; min-width:0">
-            <div style="font-size:13px;font-weight:800;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:800;color:var(--text-primary);
+                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
               vs ${safeOpp}
             </div>
             <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-top:2px">
@@ -340,18 +348,13 @@ async function _loadBattleHistoryIntoHub(uid) {
             </div>
           </div>
 
-          <!-- Result badge -->
-          <div style="
-            flex-shrink:0;
-            padding:4px 10px;
-            border-radius:20px;
-            border:1px solid ${resultBorder};
-            background:${resultBg};
-            color:${resultColor};
-            font-size:11px;
-            font-weight:800;
-            white-space:nowrap;
-          ">${resultChip}</div>
+          <div style="flex-shrink:0;padding:4px 10px;border-radius:20px;
+               border:1px solid ${resultBorder};background:${resultBg};
+               color:${resultColor};font-size:11px;font-weight:800;white-space:nowrap">
+            ${resultChip}
+          </div>
+
+          ${cancelBtn}
         </div>`;
     }).join('');
 
@@ -2253,6 +2256,46 @@ function escapeHTML(str) {
 // GLOBAL SQ NAMESPACE
 // ============================================
 
+// ============================================
+// CANCEL ANY MATCH BY ID (from history card)
+// Called by the ✕ Cancel button on Active/Pending
+// history cards so users can clean up ghost matches.
+// ============================================
+
+async function cancelMatchById(matchId) {
+  if (!matchId) return;
+  const user = getCurrentUser();
+  if (!user) return;
+
+  try {
+    const { doc, updateDoc, serverTimestamp } = await import('firebase/firestore');
+    const { db } = await import('./firebase/config.js');
+    await updateDoc(doc(db, 'matches', matchId), {
+      status: 'cancelled',
+      cancelledAt: serverTimestamp(),
+      cancelledBy: user.uid
+    });
+
+    // Also clear _activeChallengeMatchId if it matches
+    if (_activeChallengeMatchId === matchId) {
+      _unsubMatch();
+      _activeChallengeMatchId = null;
+      _currentChallenge       = null;
+    }
+    if (_outgoingChallengeId === matchId) {
+      stopOutgoingChallengeListener();
+      _outgoingChallengeId = null;
+    }
+
+    showToast('Match cancelled ✓', 'success', 2000);
+    // Reload history to reflect the change
+    _loadBattleHistoryIntoHub(user.uid);
+  } catch (e) {
+    showToast('Could not cancel — check your connection', 'error');
+    console.warn('[App] cancelMatchById failed:', e.message);
+  }
+}
+
 window.SQ = {
   switchAuthTab,
   closeAuthModal,
@@ -2272,5 +2315,6 @@ window.SQ = {
   challengeUser:              (uid, name) => handleChallengeUser(uid, name),
   directChallenge:            (uid, name) => handleDirectChallenge(uid, name),
   closeIncomingChallengeModal,
-  cancelActiveChallenge
+  cancelActiveChallenge,
+  cancelMatchById
 };
