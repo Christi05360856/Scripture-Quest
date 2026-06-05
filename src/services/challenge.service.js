@@ -112,7 +112,7 @@ export async function sendDirectChallenge(targetUid, targetName, questions) {
   });
 
   // Send FCM push notification (for offline users)
-  // Non-fatal if it fails
+  // Non-fatal if it fails — Spark plan blocks Functions entirely
   try {
     const notifFn = getSendNotifFn();
     await notifFn({
@@ -122,7 +122,8 @@ export async function sendDirectChallenge(targetUid, targetName, questions) {
       matchId
     });
   } catch (e) {
-    console.warn('[Challenge] FCM notification failed (non-fatal):', e.message);
+    // Expected on Spark plan — Functions are not available
+    console.warn('[Challenge] Notification skipped (Spark plan)');
   }
 
   return { matchId, code, expiresAt: expiresAt.toMillis() };
