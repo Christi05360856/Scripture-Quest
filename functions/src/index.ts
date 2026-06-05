@@ -9,3 +9,4 @@ export { sendDailyReminders }          from './notifications/scheduler';
 
 // ── Battle functions ──
 export { sendChallengeNotification }   from './battle/sendChallengeNotification';
+export { onMatchUpdate }               from './battle/onMatchUpdate';
