@@ -51,7 +51,7 @@ firebaseMessaging.onBackgroundMessage(payload => {
 // PWA CACHE SETUP
 // ============================================
 
-const SW_VERSION    = 'sq-v4.0.0';
+const SW_VERSION    = 'sq-v4.0.1';
 const CACHE_STATIC  = `${SW_VERSION}-static`;
 const CACHE_DYNAMIC = `${SW_VERSION}-dynamic`;
 
