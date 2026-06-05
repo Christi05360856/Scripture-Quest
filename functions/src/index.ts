@@ -8,5 +8,4 @@ export { archiveWeeklyLeaderboard }    from './leaderboard/archiveWeeklyLeaderbo
 export { sendDailyReminders }          from './notifications/scheduler';
 
 // ── Battle functions ──
-export { completeBattle }              from './battle/completeBattle';
 export { sendChallengeNotification }   from './battle/sendChallengeNotification';
