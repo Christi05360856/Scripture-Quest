@@ -68,3 +68,35 @@ export const CORRECT_EMOJIS = ['😊','😄','🎉','✨','🌟','👏','🙌','
 export const WRONG_EMOJIS   = ['😢','😞','😔','💔','😟','😕','🤦','😿'];
 export const LETTERS        = ['A','B','C','D'];
 export const SCORE_PASS_THRESHOLD = 50;
+
+export const PATH_PASS_THRESHOLD = 70;   // % required to pass a round
+ 
+export const XP_PER_CORRECT_PATH = 10;
+export const XP_ROUND_COMPLETE   = 50;
+export const XP_LESSON_COMPLETE  = 100;
+export const XP_UNIT_COMPLETE    = 200;
+export const XP_SECTION_COMPLETE = 1000;
+export const XP_PERFECT_ROUND    = 150;  // awarded INSTEAD OF XP_ROUND_COMPLETE on 100%
+ 
+export const QUESTIONS_PER_ROUND = 7;
+ 
+// Difficulty distribution per round (Blueprint Phase 0)
+export const DIFFICULTY_DISTRIBUTION = {
+  HARD: 2,
+  VERY_HARD: 3,
+  EXPERT: 2
+};
+ 
+// localStorage key for resuming an in-progress round (mirrors QUIZ_STATE_KEY pattern)
+export const PATH_ROUND_STATE_KEY = 'sq_path_round_state_v1';
+ 
+// Screen name constants for the new path screens (used by app.js showScreen())
+export const PATH_SCREENS = {
+  PATH:            'path',
+  STUDY:           'study',
+  ROUND:           'round',
+  ROUND_RESULT:    'round-result',
+  LESSON_COMPLETE: 'lesson-complete',
+  UNIT_COMPLETE:   'unit-complete',
+  SECTION_COMPLETE:'section-complete'
+};
