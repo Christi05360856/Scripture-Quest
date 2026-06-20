@@ -39,9 +39,9 @@ import { sendDirectChallenge, listenForIncomingChallenges,
          rejectDirectChallenge, listenForChallengeResponse,
          stopOutgoingChallengeListener }        from './services/challenge.service.js';
 
-// ============================================
+// =======================================
 // MODULE-LEVEL STATE
-// ============================================
+// =======================================
 
 let _localQuestions          = null;
 let _quizPage                = null;
