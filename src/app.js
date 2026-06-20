@@ -160,13 +160,21 @@ function showScreen(name) {
 
 function setBattleFabVisible(visible) {
   const fab = document.getElementById('battle-fab');
-  if (fab) fab.classList.toggle('hidden', !visible);
+  if (!fab) return;
+  // FIX (Item 4): FABs must never show before login,
+  // no matter which screen is active.
+  const shouldShow = visible && !!getCurrentUser();
+  fab.classList.toggle('hidden', !shouldShow);
 }
 
 function setDailyFabVisible(visible) {
   const fab = document.getElementById('daily-challenge-fab');
-  if (fab) fab.classList.toggle('hidden', !visible);
+  if (!fab) return;
+  // FIX (Item 4): same guard as battle FAB.
+  const shouldShow = visible && !!getCurrentUser();
+  fab.classList.toggle('hidden', !shouldShow);
 }
+
 
 // ============================================
 // CHALLENGE HUB MODAL
@@ -385,11 +393,19 @@ initAuthListener(
       setTimeout(() => showChallengeAcceptModal(code), 800);
     } else {
       showScreen('path');
+             // Item 1: show the onboarding tour once, on first login only.
+import('./pages/onboarding.page.js').then(({ shouldShowOnboarding, startOnboarding }) => {
+  if (shouldShowOnboarding()) {
+    setTimeout(() => startOnboarding(), 900);
+  }
+}).catch(e => console.warn('[Onboarding] Load failed:', e.message));
+             
     }
   },
   () => {
     initTheme(null);
     setBattleFabVisible(false);
+    setDailyFabVisible(false); 
     stopPresenceHeartbeat();
     stopIncomingChallengeListener();
     stopOutgoingChallengeListener();
@@ -1690,6 +1706,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('daily-challenge-fab')?.addEventListener('click', openDailyChallenge);
+
+ document.getElementById('settings-replay-tutorial-btn')?.addEventListener('click', () => {
+  import('./pages/onboarding.page.js').then(({ startOnboarding }) => {
+    startOnboarding();
+  }).catch(e => showToast('Could not load tutorial', 'error'));
+});
+         
 
   document.getElementById('daily-modal-start-btn')?.addEventListener('click', () => {
     closeDailyModal();
