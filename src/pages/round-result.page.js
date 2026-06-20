@@ -4,14 +4,18 @@
 // Handles pass/fail display, XP, per-question
 // summary, and celebration cascade routing.
 // Lazy-loaded — only imported when needed.
+//
+// BUG FIX: Added null checks and error handling
+// so the screen always transitions even if data is missing.
 // ============================================
 
 import { getRound, getNextRoundId } from '../services/path.service.js';
+import { showToast } from '../utils/toast.js';
 
 // Element helper
 const el = id => document.getElementById(id);
 
-// Stroke circumference for the SVG ring (radius = 50, so c = 2π×50 ≈ 314.16)
+// Stroke circumference for the SVG ring (radius = 50, so c = 2pi x 50 ~ 314.16)
 const RING_CIRCUMFERENCE = 2 * Math.PI * 50;
 
 // ============================================
@@ -21,13 +25,22 @@ const RING_CIRCUMFERENCE = 2 * Math.PI * 50;
 export function initRoundResultScreen(result, callbacks) {
   const cb = callbacks || {};
 
-  _renderHeader(result);
-  _renderScoreRing(result);
-  _renderPassBadge(result);
-  _renderXp(result);
-  _renderQSummary(result);
-  _renderCelebration(result);
-  _wireButtons(result, cb);
+  // BUG FIX: Wrap entire init in try/catch so the screen
+  // always transitions even if something throws.
+  try {
+    _renderHeader(result);
+    _renderScoreRing(result);
+    _renderPassBadge(result);
+    _renderXp(result);
+    _renderQSummary(result);
+    _renderCelebration(result);
+    _wireButtons(result, cb);
+  } catch (err) {
+    console.error('[RoundResult] Render error:', err);
+    showToast('Something went wrong showing your results. Please try again.', 'error');
+    // Still call the back callback so the user is not stuck
+    setTimeout(() => cb.onBackToPath?.(), 1500);
+  }
 }
 
 // ============================================
@@ -35,6 +48,7 @@ export function initRoundResultScreen(result, callbacks) {
 // ============================================
 
 function _renderHeader(result) {
+  if (!result) return;
   const { percentage, passed, isPerfect } = result;
 
   const icon  = isPerfect ? '🏆' : passed ? '🎉' : '📖';
@@ -53,20 +67,22 @@ function _renderHeader(result) {
 // ============================================
 
 function _renderScoreRing(result) {
+  if (!result) return;
   const { percentage, score, totalQuestions } = result;
 
-  _setText('round-result-pct',    `${percentage}%`);
-  _setText('round-result-detail', `${score}/${totalQuestions}`);
+  _setText('round-result-pct',    `${percentage || 0}%`);
+  _setText('round-result-detail', `${score || 0}/${totalQuestions || 0}`);
 
   // Animate ring fill
   const ringEl = el('round-ring-fill');
   if (ringEl) {
-    const offset = RING_CIRCUMFERENCE * (1 - (percentage / 100));
+    const pct = Math.min(Math.max(percentage || 0, 0), 100);
+    const offset = RING_CIRCUMFERENCE * (1 - (pct / 100));
     // Set initial state (no dash)
     ringEl.style.strokeDasharray  = `${RING_CIRCUMFERENCE}`;
     ringEl.style.strokeDashoffset = `${RING_CIRCUMFERENCE}`;
     // Apply colour based on percentage
-    ringEl.style.stroke = _ringColor(percentage);
+    ringEl.style.stroke = _ringColor(pct);
     // Animate after a short delay
     requestAnimationFrame(() => {
       setTimeout(() => {
@@ -88,6 +104,7 @@ function _ringColor(pct) {
 // ============================================
 
 function _renderPassBadge(result) {
+  if (!result) return;
   const badge   = el('round-pass-badge');
   const textEl  = el('round-pass-text');
   if (!badge || !textEl) return;
@@ -100,7 +117,7 @@ function _renderPassBadge(result) {
     textEl.textContent = '✅ Passed';
   } else {
     badge.className    = 'round-pass-badge round-pass-badge--fail';
-    textEl.textContent = `❌ ${result.percentage}% — Need 70% to pass`;
+    textEl.textContent = `❌ ${result.percentage || 0}% — You need 70% to pass`;
   }
 }
 
@@ -109,6 +126,7 @@ function _renderPassBadge(result) {
 // ============================================
 
 function _renderXp(result) {
+  if (!result) return;
   const xpEl = el('round-xp-earned');
   if (xpEl) xpEl.textContent = `+${result.xpEarned || 0} XP`;
 }
@@ -120,6 +138,7 @@ function _renderXp(result) {
 // ============================================
 
 function _renderQSummary(result) {
+  if (!result) return;
   const container = el('round-q-summary');
   if (!container) return;
 
@@ -129,11 +148,14 @@ function _renderQSummary(result) {
   container.innerHTML = questions.map((q, i) => {
     const chosen    = userAnswers?.[i];
     const answered  = chosen !== undefined;
-    const isCorrect = answered && chosen === q.correctAnswer;
+    const isCorrect = answered && chosen === q?.correctAnswer;
     const cls       = !answered     ? 'round-q-dot--skipped'
                     : isCorrect     ? 'round-q-dot--correct'
                     :                 'round-q-dot--wrong';
-    return `<span class="round-q-dot ${cls}" title="Q${i + 1}: ${isCorrect ? 'Correct' : answered ? 'Wrong' : 'Skipped'}"></span>`;
+    const label     = !answered     ? 'Skipped'
+                    : isCorrect     ? 'Correct'
+                    :                 'Wrong';
+    return `<span class="round-q-dot ${cls}" title="Q${i + 1}: ${label}"></span>`;
   }).join('');
 }
 
@@ -143,6 +165,7 @@ function _renderQSummary(result) {
 // ============================================
 
 function _renderCelebration(result) {
+  if (!result) return;
   const block  = el('round-celebration-block');
   const iconEl = el('round-celebration-icon');
   const msgEl  = el('round-celebration-msg');
@@ -181,6 +204,7 @@ function _renderCelebration(result) {
 // ============================================
 
 function _wireButtons(result, cb) {
+  if (!result) return;
   const passActions = el('round-pass-actions');
   const failActions = el('round-fail-actions');
 
@@ -188,40 +212,45 @@ function _wireButtons(result, cb) {
     passActions?.classList.remove('hidden');
     failActions?.classList.add('hidden');
     _wireBtnOnce('round-next-round-btn', async () => {
-      // If section/unit/lesson complete, route to celebration first
-      if (result.sectionComplete) {
-        const round = getRound(result.roundId);
-        cb.onSectionComplete?.({
-          sectionTitle: _getSectionTitle(result),
-          xp:          1000,
-          nextRoundId: getNextRoundId(result.roundId)
-        });
-        return;
-      }
-      if (result.unitComplete) {
-        const round = getRound(result.roundId);
-        cb.onUnitComplete?.({
-          bookTitle:   _getBookTitle(result.roundId),
-          xp:          200,
-          nextRoundId: getNextRoundId(result.roundId)
-        });
-        return;
-      }
-      if (result.lessonComplete) {
-        cb.onLessonComplete?.({
-          lessonTitle: getRound(result.roundId)?.lessonTitle || '',
-          passageRef:  getRound(result.roundId)?.passageRef  || '',
-          xp:          100,
-          nextRoundId: getNextRoundId(result.roundId)
-        });
-        return;
-      }
-      // Plain next round
-      const nextId = getNextRoundId(result.roundId);
-      if (nextId) {
-        cb.onNextRound?.(nextId);
-      } else {
-        cb.onBackToPath?.();
+      try {
+        // If section/unit/lesson complete, route to celebration first
+        if (result.sectionComplete) {
+          const round = getRound(result.roundId);
+          cb.onSectionComplete?.({
+            sectionTitle: _getSectionTitle(result),
+            xp:          1000,
+            nextRoundId: getNextRoundId(result.roundId)
+          });
+          return;
+        }
+        if (result.unitComplete) {
+          const round = getRound(result.roundId);
+          cb.onUnitComplete?.({
+            bookTitle:   _getBookTitle(result.roundId),
+            xp:          200,
+            nextRoundId: getNextRoundId(result.roundId)
+          });
+          return;
+        }
+        if (result.lessonComplete) {
+          cb.onLessonComplete?.({
+            lessonTitle: getRound(result.roundId)?.lessonTitle || '',
+            passageRef:  getRound(result.roundId)?.passageRef  || '',
+            xp:          100,
+            nextRoundId: getNextRoundId(result.roundId)
+          });
+          return;
+        }
+        // Plain next round
+        const nextId = getNextRoundId(result.roundId);
+        if (nextId) {
+          cb.onNextRound?.(nextId);
+        } else {
+          cb.onBackToPath?.();
+        }
+      } catch (err) {
+        console.error('[RoundResult] Button handler error:', err);
+        showToast('Something went wrong. Please try again.', 'error');
       }
     });
     _wireBtnOnce('round-back-path-btn', () => cb.onBackToPath?.());
@@ -248,9 +277,7 @@ function _wireBtnOnce(id, handler) {
 // ============================================
 
 function _getSectionTitle(result) {
-  // e.g. "GEN-01-A" → section 1 = The Pentateuch
-  // path.service.js getPathStructure() could be used here,
-  // but to keep this file lean we derive from sectionId.
+  // e.g. "GEN-01-A" -> section 1 = The Pentateuch
   const SECTION_NAMES = {
     1: 'The Pentateuch',
     2: 'Historical Books',
@@ -261,7 +288,7 @@ function _getSectionTitle(result) {
     7: 'Acts & The Epistles',
     8: 'Revelation'
   };
-  if (result.sectionId) {
+  if (result?.sectionId) {
     const num = parseInt(String(result.sectionId).replace(/\D/g, ''));
     return SECTION_NAMES[num] || `Section ${num}`;
   }
