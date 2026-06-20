@@ -27,10 +27,10 @@ const QUESTION_TYPE_LABELS = {
   HOW_MANY:      'How Many',
   SEQUENCE:      'In Order',
   EXACT_WORDING: 'Exact Words',
-  ABSENCE:       'What\'s Missing'
+  ABSENCE:       'What's Missing'
 };
 
-// Positive / negative feedback emojis (same pattern as quiz.page.js)
+// Positive / negative feedback emojis
 const CORRECT_EMOJIS = ['🎉', '✅', '💯', '🌟', '👏', '🔥', '⭐'];
 const WRONG_EMOJIS   = ['📖', '🤔', '💪', '✍️', '📚', '🧐'];
 
@@ -76,10 +76,37 @@ export function initRoundScreen(roundId, callbacks) {
   const passEl = el('round-passage-label');
   if (passEl) passEl.textContent = round.passageRef || '';
 
+  // Show passing requirement notice before starting
+  _showPassingNotice(round);
+
   _buildDotNav();
   _renderQuestion();
   _wireNavButtons();
   _wireQuitButton();
+}
+
+// ============================================
+// PASSING REQUIREMENT NOTICE
+// Show before the user begins each round.
+// Must score at least 5 out of 7 to pass.
+// ============================================
+
+function _showPassingNotice(round) {
+  const noticeEl = el('round-passing-notice');
+  if (noticeEl) {
+    const total = round.questions?.length || 7;
+    const needed = Math.ceil(total * 0.7); // 70% = 5/7
+    noticeEl.innerHTML = `
+      <div class="passing-notice-box">
+        <span class="passing-notice-icon">🎯</span>
+        <p class="passing-notice-text">
+          You need <strong>${needed} out of ${total}</strong> correct to pass this round.
+        </p>
+        <p class="passing-notice-sub">Answer carefully. You can review the passage before each round.</p>
+      </div>
+    `;
+    noticeEl.classList.remove('hidden');
+  }
 }
 
 // ============================================
@@ -113,7 +140,9 @@ function _renderQuestion() {
     typeLabel.textContent = QUESTION_TYPE_LABELS[q.questionType] || q.questionType || '';
   }
 
-  // Question text
+  // Question text — questions should be clear, fair, and test real understanding.
+  // Avoid trick questions or overly complex wording. Each question should relate
+  // directly to the study card content but require genuine knowledge, not guessing.
   const qText = el('round-question-text');
   if (qText) {
     qText.textContent      = q.question || '';
@@ -122,7 +151,8 @@ function _renderQuestion() {
     qText.style.animation  = 'fadeInUp 0.25s ease';
   }
 
-  // Options
+  // Options — keep language simple and natural.
+  // Distractors should be plausible but clearly wrong to someone who knows the passage.
   const optList = el('round-options-list');
   if (optList) {
     optList.innerHTML = (q.options || []).map((opt, i) => `
@@ -182,7 +212,7 @@ function _renderQuestion() {
 }
 
 // ============================================
-// ANSWER STATE — same policy as quiz.page.js:
+// ANSWER STATE
 // Only mark chosen button (green or red).
 // Never reveal the correct answer on other buttons.
 // ============================================
@@ -379,7 +409,7 @@ async function _handleSubmit() {
   const nextBtn   = el('round-next-btn');
   if (submitBtn) {
     submitBtn.disabled   = true;
-    submitBtn.innerHTML  = '<i class="fas fa-spinner fa-spin"></i> Submitting…';
+    submitBtn.innerHTML  = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
   }
   if (nextBtn) nextBtn.disabled = true;
   document.querySelectorAll('#round-options-list .option').forEach(b => b.disabled = true);
