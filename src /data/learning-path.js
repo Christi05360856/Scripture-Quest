@@ -2,10 +2,7 @@
 // SCRIPTUREQUEST V5 — Learning Path Connector
 // This file imports all 66 book files and
 // merges them into one learningPath object.
-//
-// DO NOT add questions here.
-// Add questions in their individual book files.
-//
+
 // To add a new book:
 //   1. Uncomment the import line for that book
 //   2. Uncomment the spread line inside learningPath
