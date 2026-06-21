@@ -8169,5 +8169,885 @@ export const questions = [
     "category": "General",
     "difficulty": "hard",
     "verseReference": "Psalms"
+  },
+   {
+    question: "What did Moses' mother do to save him from Pharaoh's decree to kill Hebrew baby boys?",
+    options: ["Hid him in a basket among the reeds of the Nile", "Fled with him to Midian immediately", "Disguised him as a girl", "Sent him to live with Egyptian relatives"],
+    correctAnswer: 0,
+    category: "Old Testament",
+    difficulty: "easy",
+    verseReference: "Exodus 2:3"
+  },
+  {
+    question: "Who was Pharaoh's daughter who found baby Moses and raised him in the Egyptian palace?",
+    options: ["Bithiah", "An unnamed daughter of Pharaoh", "Nefertari", "Hatshepsut"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "medium",
+    verseReference: "Exodus 2:5-10"
+  },
+  {
+    question: "What happened to Moses after he killed an Egyptian who was beating a Hebrew slave?",
+    options: ["He was imprisoned by Pharaoh", "He fled to the land of Midian", "He was publicly executed", "He was forgiven and promoted"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "medium",
+    verseReference: "Exodus 2:15"
+  },
+  {
+    question: "Who was Moses' father-in-law, a priest of Midian, who advised him to appoint judges to share his workload?",
+    options: ["Reuel", "Jethro", "Hobab", "Zipporah's brother"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "Exodus 18:17-21"
+  },
+  {
+    question: "What covering did God provide over the tabernacle, made of badger or fine leather skins?",
+    options: ["A protective outer covering", "Pure gold plating", "Woven linen alone", "Cedar wood panels"],
+    correctAnswer: 0,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "Exodus 26:14"
+  },
+  {
+    question: "What were the two stone tablets Moses brought down from Mount Sinai inscribed with?",
+    options: ["A record of Israel's journey", "The Ten Commandments", "A list of priestly duties", "Genealogies of the twelve tribes"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "easy",
+    verseReference: "Exodus 31:18"
+  },
+  {
+    question: "What happened to Moses' face after he spoke with God on Mount Sinai, requiring him to wear a veil?",
+    options: ["It became disfigured", "It shone with radiant light", "It aged dramatically", "It remained completely unchanged"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "Exodus 34:29-33"
+  },
+  {
+    question: "Which tribe of Israel was set apart for priestly duties and did not receive a regular land inheritance?",
+    options: ["Judah", "Levi", "Benjamin", "Simeon"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "medium",
+    verseReference: "Numbers 18:20"
+  },
+  {
+    question: "What did the bronze serpent that Moses lifted up in the wilderness do for those who looked at it?",
+    options: ["Granted them wisdom", "Healed them from venomous snake bites", "Protected their camp from enemies", "Gave them strength in battle"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "Numbers 21:8-9"
+  },
+  {
+    question: "Who was the Moabite king who hired Balaam to curse the Israelites as they approached his land?",
+    options: ["Eglon", "Balak", "Sihon", "Og"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "Numbers 22:2-6"
+  },
+  {
+    question: "What did God instruct Joshua to do at the Jordan River before entering the Promised Land, regarding twelve stones?",
+    options: ["Build a fortress with them", "Set up a memorial as a sign for future generations", "Use them to seal the river crossing", "Mark the boundary of each tribe"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "Joshua 4:6-7"
+  },
+  {
+    question: "What did Joshua command the sun and moon to do during the battle against the Amorite kings?",
+    options: ["Disappear behind clouds", "Stand still until Israel avenged itself", "Move faster to end the day quickly", "Change colour as a sign"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "Joshua 10:12-13"
+  },
+  {
+    question: "Who was the judge that defeated a Canaanite army with the help of Deborah and a tent peg driven through an enemy commander's head?",
+    options: ["Jael drove the tent peg; Barak led the army", "Deborah drove the tent peg herself", "Ehud led the army to victory", "Shamgar struck down the enemy alone"],
+    correctAnswer: 0,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "Judges 4:21"
+  },
+  {
+    question: "What unusual weapon did Ehud use to assassinate the oppressive Moabite king Eglon?",
+    options: ["A hidden double-edged sword", "A sling and stone", "A poisoned dagger", "A bow and arrow"],
+    correctAnswer: 0,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "Judges 3:16-21"
+  },
+  {
+    question: "What did Samson do to the Philistines using the jawbone of a donkey?",
+    options: ["Built a weapon factory", "Killed a thousand men with it", "Used it to dig a well", "Carved an idol to mock them"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "medium",
+    verseReference: "Judges 15:15"
+  },
+  {
+    question: "Who cut Samson's hair while he slept, leading to the loss of his great strength?",
+    options: ["Delilah", "An unnamed Philistine soldier", "His own mother", "A temple priestess"],
+    correctAnswer: 0,
+    category: "Old Testament",
+    difficulty: "easy",
+    verseReference: "Judges 16:19"
+  },
+  {
+    question: "What vow did Jephthah make before battle that tragically led to the sacrifice of his own daughter?",
+    options: ["To give half his wealth to the temple", "To offer whatever came out of his house first upon his return", "To dedicate his firstborn son to God", "To fast for forty days if victorious"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "Judges 11:30-31"
+  },
+  {
+    question: "What did the Israelites do during the time of the judges that the book repeatedly criticises as a pattern of behaviour?",
+    options: ["They worshipped God faithfully without fail", "Everyone did what was right in their own eyes", "They followed Moses' Law perfectly", "They unified under a single strong king"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "medium",
+    verseReference: "Judges 21:25"
+  },
+  {
+    question: "Who was the husband of Ruth's mother-in-law Naomi, whose death in Moab set off the events of the book?",
+    options: ["Boaz", "Elimelech", "Mahlon", "Chilion"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "Ruth 1:2-3"
+  },
+  {
+    question: "What custom in Israelite law allowed Boaz to marry Ruth as her close relative?",
+    options: ["The law of the kinsman-redeemer", "Royal decree alone", "A direct command from a prophet", "An agreement between tribal elders only"],
+    correctAnswer: 0,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "Ruth 4:9-10"
+  },
+  {
+    question: "What did Samuel do when the Israelites demanded a king like the other nations, despite his warnings?",
+    options: ["Refused outright and exiled the elders", "Warned them but ultimately anointed Saul as king", "Appointed himself as king instead", "Asked God to destroy the nation"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "medium",
+    verseReference: "1 Samuel 8:19-22"
+  },
+  {
+    question: "What did Saul do that caused Samuel to declare that the LORD had rejected him as king?",
+    options: ["He refused to fight the Philistines", "He disobeyed God's command to destroy the Amalekites completely", "He married a foreign wife", "He built an altar to a foreign god"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "1 Samuel 15:23"
+  },
+  {
+    question: "What evil spirit troubled King Saul, which David's harp playing would soothe?",
+    options: ["A spirit of pride", "A distressing spirit from the LORD", "A spirit of confusion only", "A spirit of false prophecy"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "1 Samuel 16:14-23"
+  },
+  {
+    question: "What did David do with King Saul's spear and water jug when he spared his life a second time?",
+    options: ["Destroyed them as proof of victory", "Took them and showed Saul from a distance to prove he meant no harm", "Returned them secretly without being seen", "Gave them to Jonathan as a gift"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "1 Samuel 26:12"
+  },
+  {
+    question: "How did King Saul die at the battle of Mount Gilboa against the Philistines?",
+    options: ["He was captured and executed", "He fell on his own sword", "He died of natural causes during battle", "He was poisoned by an advisor"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "medium",
+    verseReference: "1 Samuel 31:4"
+  },
+  {
+    question: "What did David do when he heard of the deaths of Saul and Jonathan, despite his complicated history with Saul?",
+    options: ["He celebrated his path to the throne", "He mourned and composed a lament for them", "He ignored the news and moved forward", "He blamed Jonathan for the defeat"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "medium",
+    verseReference: "2 Samuel 1:17"
+  },
+  {
+    question: "What sin did David commit with Bathsheba that led to the death of her husband Uriah?",
+    options: ["He merely admired her from afar", "He committed adultery and arranged Uriah's death in battle", "He simply proposed marriage to her", "He sent her away from the kingdom"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "medium",
+    verseReference: "2 Samuel 11:4-15"
+  },
+  {
+    question: "What did God promise David regarding his throne and descendants through the prophet Nathan?",
+    options: ["His throne would be established forever", "His kingdom would last only one generation", "His descendants would lose the throne quickly", "His line would end with Solomon"],
+    correctAnswer: 0,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "2 Samuel 7:16"
+  },
+  {
+    question: "Who advised Solomon's son Rehoboam to lighten the people's burden, advice he ultimately rejected?",
+    options: ["The young men who grew up with him", "The elders who had served his father Solomon", "The high priest of the temple", "His mother, an Ammonite princess"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "1 Kings 12:6-8"
+  },
+  {
+    question: "Who was the first king of the northern kingdom of Israel after the split, who set up golden calves to worship?",
+    options: ["Rehoboam", "Jeroboam", "Omri", "Baasha"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "1 Kings 12:28"
+  },
+  {
+    question: "What did Elijah do to the dead son of the widow of Zarephath who had shown him hospitality?",
+    options: ["Buried him with honour", "Stretched himself over the boy and prayed, and he was raised to life", "Sent for a physician", "Comforted the widow without intervening"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "1 Kings 17:21-22"
+  },
+  {
+    question: "Who succeeded Ahab as king of Israel and consulted the false god Baal-zebub about his injury, angering Elijah?",
+    options: ["Ahaziah", "Jehoram", "Jehu", "Jehoahaz"],
+    correctAnswer: 0,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "2 Kings 1:2-3"
+  },
+  {
+    question: "What happened when Elisha's servant Gehazi secretly took payment from Naaman after Elisha had refused it?",
+    options: ["He was forgiven after confessing", "He was struck with Naaman's leprosy", "He was simply dismissed from service", "Nothing happened to him"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "2 Kings 5:25-27"
+  },
+  {
+    question: "What did Elisha pray for his servant to see when they were surrounded by an enemy army, revealing a greater unseen army?",
+    options: ["A vision of future victory", "His eyes to be opened to see horses and chariots of fire", "A path of escape through the hills", "The enemy's secret battle plans"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "2 Kings 6:17"
+  },
+  {
+    question: "Which king of Judah is remembered as one of the most wicked, who sacrificed his own son and practised sorcery?",
+    options: ["Hezekiah", "Manasseh", "Josiah", "Amon"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "2 Kings 21:6"
+  },
+  {
+    question: "What did young King Josiah do after the Book of the Law was rediscovered in the temple during repairs?",
+    options: ["He ignored it and continued as before", "He led a national reform back to covenant faithfulness", "He destroyed the scroll out of fear", "He gave it to foreign scholars to study"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "2 Kings 23:1-3"
+  },
+  {
+    question: "Who was the Babylonian king who destroyed Jerusalem and the temple, taking the Israelites into exile?",
+    options: ["Cyrus", "Nebuchadnezzar", "Belshazzar", "Darius"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "medium",
+    verseReference: "2 Kings 25:8-9"
+  },
+  {
+    question: "What did the Persian king Cyrus do that allowed the exiled Jews to return to Jerusalem?",
+    options: ["He issued a decree permitting their return and the rebuilding of the temple", "He sent his own army to rebuild the city", "He adopted Jewish customs personally", "He demanded they remain in Babylon"],
+    correctAnswer: 0,
+    category: "Old Testament",
+    difficulty: "medium",
+    verseReference: "Ezra 1:1-4"
+  },
+  {
+    question: "What opposition did Nehemiah face from Sanballat and Tobiah while rebuilding the walls of Jerusalem?",
+    options: ["Open military attack only", "Mockery, threats, and plots of conspiracy", "Complete indifference", "Formal legal challenges in court"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "Nehemiah 4:1-8"
+  },
+  {
+    question: "What did the people do when Ezra read the Book of the Law publicly to the returned exiles?",
+    options: ["They ignored it and went about their business", "They wept upon hearing it, then were told to celebrate with joy", "They demanded it be destroyed", "They rejected Ezra's authority entirely"],
+    correctAnswer: 1,
+    category: "Old Testament",
+    difficulty: "hard",
+    verseReference: "Nehemiah 8:9-12"
+  },
+  {
+    question: "What was Job's response when his wife told him to curse God and die amid his suffering?",
+    options: ["He agreed and cursed God", "He rebuked her and said they should accept both good and adversity from God", "He remained silent and said nothing", "He left her and lived alone"],
+    correctAnswer: 1,
+    category: "Wisdom Books",
+    difficulty: "medium",
+    verseReference: "Job 2:9-10"
+  },
+  {
+    question: "What does God's response to Job from the whirlwind primarily focus on?",
+    options: ["Explaining exactly why Job suffered", "Questions about creation that highlight God's power and Job's limited understanding", "A direct apology to Job", "A promise of immediate wealth"],
+    correctAnswer: 1,
+    category: "Wisdom Books",
+    difficulty: "hard",
+    verseReference: "Job 38:4"
+  },
+  {
+    question: "What does Psalm 8 marvel at regarding humanity's place in creation, despite the vastness of the heavens?",
+    options: ["That mankind is insignificant compared to creation", "That God is mindful of man and crowned him with glory and honour", "That the stars are more important than humanity", "That creation should be feared by man"],
+    correctAnswer: 1,
+    category: "Wisdom Books",
+    difficulty: "hard",
+    verseReference: "Psalm 8:4-5"
+  },
+  {
+    question: "What does Psalm 121 say about the source of the psalmist's help?",
+    options: ["It comes from the psalmist's own strength", "It comes from the LORD, maker of heaven and earth", "It comes from the mountains themselves", "It comes from the wisdom of elders"],
+    correctAnswer: 1,
+    category: "Wisdom Books",
+    difficulty: "medium",
+    verseReference: "Psalm 121:1-2"
+  },
+  {
+    question: "What does Proverbs warn happens before destruction and a haughty spirit before a fall?",
+    options: ["Wealth", "Pride", "Laziness", "Anger"],
+    correctAnswer: 1,
+    category: "Wisdom Books",
+    difficulty: "easy",
+    verseReference: "Proverbs 16:18"
+  },
+  {
+    question: "According to Proverbs, what does iron sharpening iron illustrate about relationships?",
+    options: ["The danger of conflict between friends", "How one person sharpens the character of another", "The need to avoid disagreements entirely", "The importance of working alone"],
+    correctAnswer: 1,
+    category: "Wisdom Books",
+    difficulty: "medium",
+    verseReference: "Proverbs 27:17"
+  },
+  {
+    question: "What does Ecclesiastes say about two being better than one, regarding companionship and hard work?",
+    options: ["They have a good reward for their labour and can help each other up if one falls", "It makes no real difference to outcomes", "One person working alone is always more efficient", "Companionship only matters in old age"],
+    correctAnswer: 0,
+    category: "Wisdom Books",
+    difficulty: "medium",
+    verseReference: "Ecclesiastes 4:9-10"
+  },
+  {
+    question: "What does the Song of Solomon compare the beloved's love to, describing its overwhelming power?",
+    options: ["A gentle stream", "Something stronger than death, with a flame like the very flame of the LORD", "A passing summer breeze", "A quiet, unspoken feeling"],
+    correctAnswer: 1,
+    category: "Wisdom Books",
+    difficulty: "hard",
+    verseReference: "Song of Solomon 8:6"
+  },
+  {
+    question: "What does Psalm 119, the longest chapter in the Bible, focus its 176 verses primarily on?",
+    options: ["The history of Israel's kings", "Praise and meditation on the law and word of God", "A lament over national defeat", "Prophecies about future nations"],
+    correctAnswer: 1,
+    category: "Wisdom Books",
+    difficulty: "hard",
+    verseReference: "Psalm 119"
+  },
+  {
+    question: "What did Jesus tell His disciples the kingdom of heaven was like, comparing it to a tiny seed that grows into a large tree?",
+    options: ["A grain of wheat", "A mustard seed", "An olive seed", "A fig seed"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "medium",
+    verseReference: "Matthew 13:31-32"
+  },
+  {
+    question: "In the parable of the sower, what happened to the seed that fell among thorns?",
+    options: ["It grew into the strongest plants", "It was choked by the thorns and produced no fruit", "It was eaten by birds immediately", "It withered for lack of water"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "medium",
+    verseReference: "Matthew 13:7"
+  },
+  {
+    question: "What did Jesus say to Martha when she complained that her sister Mary was not helping with the housework?",
+    options: ["Mary has chosen the better part, which will not be taken from her", "Martha should rest and let the work wait", "Both sisters should serve together always", "Mary should help with the preparations immediately"],
+    correctAnswer: 0,
+    category: "Gospels",
+    difficulty: "hard",
+    verseReference: "Luke 10:41-42"
+  },
+  {
+    question: "How did Jesus respond when His disciples tried to stop children from coming to Him?",
+    options: ["He agreed they should be kept away", "He told them to let the children come, for the kingdom belongs to such as these", "He sent the children to be taught separately", "He remained silent on the matter"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "easy",
+    verseReference: "Mark 10:14"
+  },
+  {
+    question: "What happened when Jesus walked on water toward the disciples' boat during a storm, and Peter tried to walk to Him?",
+    options: ["Peter walked confidently the whole way", "Peter began to sink after seeing the wind and became afraid", "Peter refused to leave the boat", "The disciples all walked out together"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "medium",
+    verseReference: "Matthew 14:29-30"
+  },
+  {
+    question: "What did Jesus say about a house divided against itself, in response to accusations that He cast out demons by the devil's power?",
+    options: ["It will prosper through unity", "It cannot stand", "It will be rebuilt stronger", "It has no real significance"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "medium",
+    verseReference: "Mark 3:25"
+  },
+  {
+    question: "What did Jesus do at the wedding feast in Cana when the wine ran out, performing His first recorded miracle?",
+    options: ["Sent the guests to buy more wine", "Turned water into wine", "Multiplied the remaining wine", "Ended the celebration early"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "easy",
+    verseReference: "John 2:7-9"
+  },
+  {
+    question: "What did Jesus teach about worry in the Sermon on the Mount, using birds and flowers as examples?",
+    options: ["Worry is necessary for survival", "God cares for birds and flowers, and will much more care for His people", "Only the wealthy should avoid worry", "Worry strengthens one's faith over time"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "medium",
+    verseReference: "Matthew 6:26"
+  },
+  {
+    question: "What did Jesus say to the paralysed man lowered through a roof by his friends, before healing him physically?",
+    options: ["Stand up and walk immediately", "Your sins are forgiven", "Go home and rest", "Have faith and you will be made well"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "hard",
+    verseReference: "Mark 2:5"
+  },
+  {
+    question: "What did the disciples find when they returned to the boat after Jesus calmed the storm with a word?",
+    options: ["The boat had drifted far off course", "They marvelled, asking what kind of man this was that even the wind and sea obeyed Him", "Other fishermen waiting to greet them", "The storm continued despite His command"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "medium",
+    verseReference: "Mark 4:41"
+  },
+  {
+    question: "Who did Jesus heal at the pool of Bethesda, a man who had been an invalid for thirty-eight years?",
+    options: ["A blind beggar", "An unnamed paralysed man", "A leper outside the city", "A deaf and mute man"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "hard",
+    verseReference: "John 5:5-9"
+  },
+  {
+    question: "What did the Pharisee and the tax collector each pray in Jesus' parable about humility before God?",
+    options: ["Both prayed identical prayers of repentance", "The Pharisee boasted of his righteousness; the tax collector asked for mercy as a sinner", "Both boasted about their good deeds", "Neither prayed sincerely"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "medium",
+    verseReference: "Luke 18:11-13"
+  },
+  {
+    question: "What did Jesus say about those who mourn, in the section of His teaching known as the Beatitudes?",
+    options: ["They shall inherit the earth", "They shall be comforted", "They shall see God", "They shall be called children of God"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "medium",
+    verseReference: "Matthew 5:4"
+  },
+  {
+    question: "What miracle followed Jesus' encounter with the woman at the well in Samaria, in terms of the town's response?",
+    options: ["The town rejected Him entirely", "Many Samaritans believed in Him because of her testimony", "She was punished for speaking with Him", "The disciples forbade Him from returning"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "hard",
+    verseReference: "John 4:39"
+  },
+  {
+    question: "What did Jesus warn about building a house on sand versus building on rock, in His closing illustration of the Sermon on the Mount?",
+    options: ["Both houses would stand equally well", "The house on the rock stood firm while the one on sand collapsed in the storm", "Sand provides a more flexible foundation", "Neither foundation truly mattered"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "medium",
+    verseReference: "Matthew 7:24-27"
+  },
+  {
+    question: "What did Jesus say to His disciples when they asked how to pray, giving them what is now called the Lord's Prayer?",
+    options: ["A long and elaborate prayer is required", "A model prayer beginning with 'Our Father in heaven'", "Prayer should always be silent", "Only priests are permitted to pray formally"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "easy",
+    verseReference: "Matthew 6:9"
+  },
+  {
+    question: "What did Jesus mean when He told Peter he would become a 'fisher of men'?",
+    options: ["Peter would catch literal fish for a living forever", "Peter would lead people to follow Jesus, as he once caught fish", "Peter would become a teacher of fishing techniques", "Peter would rule over fishermen in Galilee"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "easy",
+    verseReference: "Matthew 4:19"
+  },
+  {
+    question: "What did the disciples do at the Transfiguration when they saw Jesus' appearance change and Moses and Elijah appear?",
+    options: ["They fled in terror immediately", "Peter suggested building three shelters", "They fell asleep through the entire event", "They recorded everything in writing"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "hard",
+    verseReference: "Matthew 17:4"
+  },
+  {
+    question: "Who did Jesus say would betray Him at the Last Supper, identifying him by dipping bread together?",
+    options: ["Peter", "Judas Iscariot", "Thomas", "Philip"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "medium",
+    verseReference: "John 13:26"
+  },
+  {
+    question: "What did the high priest Caiaphas accuse Jesus of during His trial before the Sanhedrin?",
+    options: ["Theft from the temple treasury", "Blasphemy, for claiming to be the Son of God", "Conspiracy with Rome", "Violating Sabbath laws repeatedly"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "medium",
+    verseReference: "Matthew 26:65"
+  },
+  {
+    question: "What did the soldiers do with Jesus' garments at the crucifixion, fulfilling an Old Testament prophecy?",
+    options: ["Burned them as was custom", "Cast lots to divide them among themselves", "Returned them to His family", "Gave them to the poor"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "hard",
+    verseReference: "John 19:23-24"
+  },
+  {
+    question: "Who requested Jesus' body from Pilate after the crucifixion and provided his own new tomb for burial?",
+    options: ["Nicodemus alone", "Joseph of Arimathea", "Lazarus", "Simon of Cyrene"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "medium",
+    verseReference: "Matthew 27:57-60"
+  },
+  {
+    question: "What did the resurrected Jesus do for the disciples on the shore of the Sea of Galilee in John's Gospel?",
+    options: ["Rebuked them for fishing instead of preaching", "Prepared breakfast for them after a miraculous catch of fish", "Sent them away to different regions immediately", "Refused to eat with them"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "hard",
+    verseReference: "John 21:9-13"
+  },
+  {
+    question: "What did Jesus ask Peter three times by the Sea of Galilee after the resurrection?",
+    options: ["Do you understand my teaching?", "Do you love me?", "Will you follow me always?", "Are you ready to lead?"],
+    correctAnswer: 1,
+    category: "Gospels",
+    difficulty: "medium",
+    verseReference: "John 21:15-17"
+  },
+  {
+    question: "What did Stephen say as he was being stoned to death, echoing words Jesus spoke on the cross?",
+    options: ["Why have you forsaken me?", "Lord, do not hold this sin against them", "It is finished", "Into your hands I commit my spirit"],
+    correctAnswer: 1,
+    category: "New Testament",
+    difficulty: "hard",
+    verseReference: "Acts 7:60"
+  },
+  {
+    question: "What did Philip do when he encountered the Ethiopian eunuch reading from the prophet Isaiah?",
+    options: ["Ignored him and continued on his journey", "Explained the Scripture and baptised him", "Sold him a copy of the scroll", "Sent him to Jerusalem for instruction"],
+    correctAnswer: 1,
+    category: "New Testament",
+    difficulty: "medium",
+    verseReference: "Acts 8:35-38"
+  },
+  {
+    question: "What vision did Cornelius the centurion have that led to Peter visiting his household?",
+    options: ["An angel telling him to send for Peter in Joppa", "A dream about a coming famine", "A vision of his ancestors", "A warning about Roman persecution"],
+    correctAnswer: 0,
+    category: "New Testament",
+    difficulty: "hard",
+    verseReference: "Acts 10:3-5"
+  },
+  {
+    question: "What happened at the Jerusalem Council described in Acts 15, regarding Gentile believers and the Law?",
+    options: ["Gentiles were required to be fully circumcised under Mosaic Law", "They decided not to burden Gentile believers with the full Mosaic Law", "The council rejected Gentile believers entirely", "They postponed the decision indefinitely"],
+    correctAnswer: 1,
+    category: "New Testament",
+    difficulty: "hard",
+    verseReference: "Acts 15:19-20"
+  },
+  {
+    question: "What did Paul do at Ephesus that caused a riot among the silversmiths who made shrines to the goddess Artemis?",
+    options: ["He preached against idol worship, reducing demand for their shrines", "He destroyed the temple of Artemis", "He converted the chief silversmith", "He outlawed silver trading"],
+    correctAnswer: 0,
+    category: "New Testament",
+    difficulty: "hard",
+    verseReference: "Acts 19:23-27"
+  },
+  {
+    question: "What did Paul appeal to as a Roman citizen when facing trial before Festus, leading to his journey to Rome?",
+    options: ["His right to a local trial", "His right to appeal to Caesar", "His right to remain silent", "His right to choose his own judge"],
+    correctAnswer: 1,
+    category: "New Testament",
+    difficulty: "hard",
+    verseReference: "Acts 25:11"
+  },
+  {
+    question: "According to Hebrews, what does the author say about Jesus as a high priest compared to earthly priests?",
+    options: ["He is identical to earthly priests in every way", "He is a high priest forever, able to sympathise with our weaknesses", "He never served as a priest at all", "He delegated priestly duties to angels"],
+    correctAnswer: 1,
+    category: "New Testament",
+    difficulty: "hard",
+    verseReference: "Hebrews 4:14-15"
+  },
+  {
+    question: "What does the book of Hebrews say about the 'great cloud of witnesses' in chapter 12?",
+    options: ["They are angels watching over believers", "They are the faithful examples of those who lived by faith before us", "They are future believers yet to be born", "They refer to the twelve apostles only"],
+    correctAnswer: 1,
+    category: "New Testament",
+    difficulty: "hard",
+    verseReference: "Hebrews 12:1"
+  },
+  {
+    question: "What does 1 Peter say believers are, called out of darkness into God's marvellous light?",
+    options: ["A chosen generation, a royal priesthood, a holy nation", "Servants without inheritance", "Strangers with no purpose", "Temporary residents only"],
+    correctAnswer: 0,
+    category: "New Testament",
+    difficulty: "medium",
+    verseReference: "1 Peter 2:9"
+  },
+  {
+    question: "According to 2 Peter, what does the apostle compare false teachers to, warning believers to be cautious?",
+    options: ["Faithful shepherds gone astray", "Springs without water and clouds carried by a storm", "Wise men seeking truth", "Humble servants of the church"],
+    correctAnswer: 1,
+    category: "New Testament",
+    difficulty: "hard",
+    verseReference: "2 Peter 2:17"
+  },
+  {
+    question: "What does 1 John say happens if we confess our sins, regarding God's faithfulness?",
+    options: ["He is faithful and just to forgive us and cleanse us", "He delays forgiveness until proven works follow", "He forgives only after a period of probation", "Forgiveness requires the help of a priest"],
+    correctAnswer: 0,
+    category: "New Testament",
+    difficulty: "easy",
+    verseReference: "1 John 1:9"
+  },
+  {
+    question: "What does Revelation describe John seeing in his vision of the throne room of heaven, surrounded by four living creatures?",
+    options: ["An empty throne awaiting judgment day", "One seated on the throne, with a rainbow resembling an emerald encircling it", "A throne guarded only by silence", "A throne visible only to the twelve apostles"],
+    correctAnswer: 1,
+    category: "New Testament",
+    difficulty: "hard",
+    verseReference: "Revelation 4:2-3"
+  },
+  {
+    question: "What does Revelation say about the final state of believers in the new heaven and new earth, regarding tears and death?",
+    options: ["Tears and death will continue but be lessened", "God will wipe away every tear, and there will be no more death", "Only the righteous will be spared from death", "Death will be delayed but not removed"],
+    correctAnswer: 1,
+    category: "New Testament",
+    difficulty: "medium",
+    verseReference: "Revelation 21:4"
+  },
+  {
+    question: "According to Romans, what does Paul say about all people having sinned, regarding the glory of God?",
+    options: ["Only the wicked have fallen short", "All have sinned and fall short of the glory of God", "Sin is limited to those without faith", "Only Gentiles are described this way"],
+    correctAnswer: 1,
+    category: "Pauline Epistles",
+    difficulty: "easy",
+    verseReference: "Romans 3:23"
+  },
+  {
+    question: "What does Paul say in Romans 12 about presenting our bodies, as an act of spiritual worship?",
+    options: ["As a comfortable, restful offering", "As a living sacrifice, holy and acceptable to God", "As a symbolic gesture only", "As something reserved for priests alone"],
+    correctAnswer: 1,
+    category: "Pauline Epistles",
+    difficulty: "medium",
+    verseReference: "Romans 12:1"
+  },
+  {
+    question: "What does 1 Corinthians 15 say is the last enemy to be destroyed, in Paul's discussion of the resurrection?",
+    options: ["Sin", "Death", "Satan", "Fear"],
+    correctAnswer: 1,
+    category: "Pauline Epistles",
+    difficulty: "hard",
+    verseReference: "1 Corinthians 15:26"
+  },
+  {
+    question: "According to Ephesians, what does Paul say believers are saved by, not as a result of works?",
+    options: ["Grace through faith", "Personal effort and discipline", "Strict adherence to the Law", "The merit of good deeds"],
+    correctAnswer: 0,
+    category: "Pauline Epistles",
+    difficulty: "easy",
+    verseReference: "Ephesians 2:8-9"
+  },
+  {
+    question: "What does Paul instruct in Colossians regarding whatever believers do, whether in word or deed?",
+    options: ["Do it for personal gain", "Do it all in the name of the Lord Jesus, giving thanks to God", "Do it only when convenient", "Do it to be seen by others"],
+    correctAnswer: 1,
+    category: "Pauline Epistles",
+    difficulty: "medium",
+    verseReference: "Colossians 3:17"
+  },
+  {
+    question: "What does Paul tell the Thessalonians to do regarding prayer, in his concise instruction in his first letter?",
+    options: ["Pray only at appointed times", "Pray without ceasing", "Pray silently and briefly", "Pray only in times of trouble"],
+    correctAnswer: 1,
+    category: "Pauline Epistles",
+    difficulty: "easy",
+    verseReference: "1 Thessalonians 5:17"
+  },
+  {
+    question: "According to 1 Timothy, what qualifications does Paul list for someone to serve as an overseer or elder in the church?",
+    options: ["Wealth and social standing alone", "Being above reproach, self-controlled, and able to teach", "Family lineage from a priestly line", "Political influence in the community"],
+    correctAnswer: 1,
+    category: "Pauline Epistles",
+    difficulty: "hard",
+    verseReference: "1 Timothy 3:2"
+  },
+  {
+    question: "What does Paul say in 2 Timothy about God not giving believers a spirit of fear?",
+    options: ["But of power, love, and a sound mind", "But of caution and careful judgment only", "But of boldness without wisdom", "But of strength without compassion"],
+    correctAnswer: 0,
+    category: "Pauline Epistles",
+    difficulty: "medium",
+    verseReference: "2 Timothy 1:7"
+  },
+  {
+    question: "What does Paul instruct Titus regarding sound doctrine and the behaviour expected of believers?",
+    options: ["Doctrine and conduct are unrelated matters", "Sound doctrine should be accompanied by godly, self-controlled living", "Only doctrine matters, not behaviour", "Behaviour matters more than doctrine"],
+    correctAnswer: 1,
+    category: "Pauline Epistles",
+    difficulty: "hard",
+    verseReference: "Titus 2:1-7"
+  },
+  {
+    question: "What does Paul describe as the 'mystery' revealed in Christ, according to his letter to the Ephesians?",
+    options: ["The timing of Christ's return", "That Gentiles are fellow heirs with Israel through the gospel", "The exact nature of the Trinity", "The location of the New Jerusalem"],
+    correctAnswer: 1,
+    category: "Pauline Epistles",
+    difficulty: "hard",
+    verseReference: "Ephesians 3:6"
+  },
+  {
+    question: "What does Galatians say believers should do, since they live by the Spirit, regarding how they walk?",
+    options: ["Walk according to the flesh's desires", "Walk by the Spirit", "Walk according to tradition only", "Walk in isolation from community"],
+    correctAnswer: 1,
+    category: "Pauline Epistles",
+    difficulty: "medium",
+    verseReference: "Galatians 5:25"
+  },
+  {
+    question: "Which Old Testament book records the genealogies tracing Israel's history from Adam through the kings of Judah?",
+    options: ["1 Chronicles", "Numbers", "Genesis alone", "Joshua"],
+    correctAnswer: 0,
+    category: "General",
+    difficulty: "hard",
+    verseReference: "1 Chronicles 1-9"
+  },
+  {
+    question: "What is the second book of the Pentateuch, recounting the Exodus from Egypt?",
+    options: ["Genesis", "Exodus", "Leviticus", "Deuteronomy"],
+    correctAnswer: 1,
+    category: "General",
+    difficulty: "easy",
+    verseReference: "Exodus"
+  },
+  {
+    question: "Which book of the Bible primarily contains detailed laws regarding sacrifices, priesthood, and ritual purity?",
+    options: ["Leviticus", "Numbers", "Deuteronomy", "Joshua"],
+    correctAnswer: 0,
+    category: "General",
+    difficulty: "medium",
+    verseReference: "Leviticus"
+  },
+  {
+    question: "What does the name 'Deuteronomy' essentially mean, reflecting its content as Moses' farewell address?",
+    options: ["First Law", "Second Law (a repetition of the Law)", "Final Words", "New Covenant"],
+    correctAnswer: 1,
+    category: "General",
+    difficulty: "hard",
+    verseReference: "Deuteronomy"
+  },
+  {
+    question: "Which four books of the New Testament are known as the Gospels, recounting the life of Jesus?",
+    options: ["Matthew, Mark, Luke, and John", "Matthew, Acts, Romans, and John", "Mark, Luke, Acts, and Revelation", "Matthew, Mark, Acts, and John"],
+    correctAnswer: 0,
+    category: "General",
+    difficulty: "easy",
+    verseReference: "General"
+  },
+  {
+    question: "Which book of the Bible is unique for being a historical narrative continuing the story after the Gospels, focused on the early church?",
+    options: ["Romans", "Acts", "Hebrews", "Revelation"],
+    correctAnswer: 1,
+    category: "General",
+    difficulty: "easy",
+    verseReference: "Acts"
+  },
+  {
+    question: "How many minor prophets are there in the Old Testament, books named after individual prophets but shorter in length?",
+    options: ["Ten", "Twelve", "Fourteen", "Eight"],
+    correctAnswer: 1,
+    category: "General",
+    difficulty: "hard",
+    verseReference: "Minor Prophets"
+  },
+  {
+    question: "Which prophetic book is the longest in the Bible by number of chapters?",
+    options: ["Jeremiah", "Isaiah", "Ezekiel", "Daniel"],
+    correctAnswer: 1,
+    category: "General",
+    difficulty: "hard",
+    verseReference: "Isaiah"
+  },
+  {
+    question: "What are the books of Joshua, Judges, Ruth, 1 and 2 Samuel, and 1 and 2 Kings broadly classified as in the Old Testament?",
+    options: ["The Major Prophets", "The Historical Books", "The Wisdom Books", "The Minor Prophets"],
+    correctAnswer: 1,
+    category: "General",
+    difficulty: "medium",
+    verseReference: "General"
+  },
+  {
+    question: "Which Old Testament book is set primarily during the Babylonian exile and features visions of future kingdoms and a 'son of man' figure?",
+    options: ["Ezekiel", "Daniel", "Jeremiah", "Lamentations"],
+    correctAnswer: 1,
+    category: "General",
+    difficulty: "medium",
+    verseReference: "Daniel"
+  },
+  {
+    question: "Who, according to tradition, is credited as the human author of the books of Luke and Acts?",
+    options: ["Mark", "Luke, described as a physician and companion of Paul", "Timothy", "Silas"],
+    correctAnswer: 1,
+    category: "General",
+    difficulty: "hard",
+    verseReference: "Colossians 4:14"
+  },
+  {
+    question: "What event does the book of Exodus take its name from, describing Israel's departure from slavery?",
+    options: ["The crossing of the Jordan River", "The departure of Israel from Egypt", "The giving of the Law at Sinai", "The building of the tabernacle"],
+    correctAnswer: 1,
+    category: "General",
+    difficulty: "easy",
+    verseReference: "Exodus"
+  },
+  {
+    question: "Which New Testament letter is addressed broadly to Hebrew Christians, emphasising the superiority of Christ over the old covenant system?",
+    options: ["Hebrews", "James", "1 Peter", "Jude"],
+    correctAnswer: 0,
+    category: "General",
+    difficulty: "medium",
+    verseReference: "Hebrews"
   }
 ];
