@@ -6219,7 +6219,7 @@ export const questions = [
     "category": "General",
     "difficulty": "medium",
     "verseReference": ""
-  }
+  },
  {
     "question": "What did God command Abraham to do with his son Isaac on Mount Moriah before providing a ram instead?",
     "options": [
