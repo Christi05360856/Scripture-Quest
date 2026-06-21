@@ -1,188 +1,396 @@
 /* ============================================
-   SCRIPTUREQUEST V5 — onboarding.css
-   Spotlight + tooltip onboarding tour.
-   All colors use CSS variables from variables.css.
-   Add this file after path.css in index.html:
-     <link rel="stylesheet" href="/styles/onboarding.css" />
+   SCRIPTUREQUEST V5 — onboarding.css (v3)
+   Adds mockup-with-callouts styling for the
+   Leaderboard and Profile slides. All previously
+   built styles (slide layout, icon badges, nav,
+   dots) are UNCHANGED below — this is the full
+   file, safe to overwrite the previous version.
    ============================================ */
 
-/* ── Full-screen overlay (dark scrim with cutout) ── */
+/* ── Full-screen onboarding wrapper ── */
 
-.onboarding-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 99998; /* just below incoming-challenge-overlay's 99999 */
-  pointer-events: none; /* let taps pass through to nothing except our own elements */
+.onboarding-screen-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  background: var(--bg-gradient);
+  overflow: hidden;
 }
 
-/* ── Dark scrim, created via box-shadow trick so the
-      "spotlight" area is a genuine transparent cutout
-      rather than a separate layered element. ── */
+/* ── Top bar: just a Skip button, top-right ── */
 
-.onboarding-spotlight {
-  position: fixed;
-  border-radius: var(--radius-lg);
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
-  transition: top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease;
-  pointer-events: none;
+.onb-top-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 20px 0;
+  flex-shrink: 0;
+  min-height: 44px;
 }
 
-/* ── Tooltip card ── */
-
-.onboarding-tooltip {
-  position: fixed;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 18px 18px 14px;
-  box-shadow: var(--shadow-xl);
-  pointer-events: auto;
-  animation: onboardingFadeIn 0.25s ease;
-  transition: top 0.3s ease, left 0.3s ease;
-}
-
-.onboarding-tooltip--center {
-  position: fixed;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  width: min(360px, calc(100vw - 48px)) !important;
-  text-align: center;
-}
-
-@keyframes onboardingFadeIn {
-  from { opacity: 0; transform: scale(0.96); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-/* ── Skip button (top-right of tooltip) ── */
-
-.onboarding-skip-btn {
-  position: absolute;
-  top: 10px;
-  right: 12px;
+.onb-skip-btn {
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-weight: 700;
   cursor: pointer;
-  padding: 4px 8px;
-  box-shadow: none;
-  transform: none;
+  padding: 8px 12px;
   text-decoration: underline;
-}
-
-.onboarding-skip-btn:hover {
-  color: var(--text-secondary);
-  transform: none;
   box-shadow: none;
+  transform: none;
+  font-family: var(--font-body);
 }
 
-/* ── Title + body ── */
+.onb-skip-btn:hover { color: var(--text-secondary); transform: none; box-shadow: none; }
+.onb-skip-btn.hidden { visibility: hidden; }
 
-.onboarding-tooltip-title {
-  font-size: var(--text-lg);
+/* ── Slide content area (centered, scrollable if needed) ── */
+
+.onb-slide-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 28px;
+  overflow-y: auto;
+}
+
+.onb-slide-content {
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.onb-slide-content--enter {
+  animation: onbSlideIn 0.35s ease;
+}
+
+@keyframes onbSlideIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Icon badge (simple-template slides only) ── */
+
+.onb-icon-badge {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56px;
+  margin-bottom: 32px;
+  box-shadow: var(--shadow-md);
+  animation: onbIconPop 0.45s ease;
+}
+
+@keyframes onbIconPop {
+  0%   { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.06); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.onb-icon-badge--primary { background: var(--info-bg);     border: 2px solid var(--info-border); }
+.onb-icon-badge--warm    { background: var(--accent-warm-bg); border: 2px solid var(--warning-border); }
+.onb-icon-badge--success { background: var(--success-bg);  border: 2px solid var(--success-border); }
+.onb-icon-badge--info    { background: var(--info-bg);     border: 2px solid var(--info-border); }
+
+/* ── Title + body (shared by both templates) ── */
+
+.onb-slide-title {
+  font-size: var(--text-2xl);
   font-weight: 900;
   color: var(--text-primary);
-  margin: 4px 28px 8px 0;
+  margin: 0 0 14px;
   line-height: 1.3;
 }
 
-.onboarding-tooltip--center .onboarding-tooltip-title {
-  margin: 8px 0 10px;
-  font-size: var(--text-xl);
+.onb-slide-title--mockup {
+  margin-top: 22px;
 }
 
-.onboarding-tooltip-body {
-  font-size: var(--text-sm);
+.onb-slide-body {
+  font-size: var(--text-base);
   color: var(--text-secondary);
   font-weight: 500;
-  line-height: 1.6;
-  margin: 0 0 16px;
+  line-height: 1.7;
+  margin: 0;
 }
 
-/* ── Footer: dots + nav buttons ── */
+/* ============================================
+   MOCKUP TEMPLATE (Leaderboard / Profile slides)
+   ============================================ */
 
-.onboarding-tooltip-footer {
+.onb-slide-content--mockup { padding-top: 4px; }
+
+.onb-mockup-panel {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 18px 16px;
+  box-shadow: var(--shadow-md);
+}
+
+/* Wraps one mockup component + its callout tag underneath */
+.onb-mockup-callout-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.onb-callout-tag {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent-primary);
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  border-radius: var(--radius-full);
+  padding: 4px 10px;
+  white-space: normal;
+  text-align: center;
+  max-width: 240px;
+  line-height: 1.3;
+}
+
+.onb-callout-tag--top    { order: -1; }
+.onb-callout-tag--bottom { order: 1; }
+
+/* ── Leaderboard mockup pieces ── */
+
+.onb-mockup-code-box {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
+  background: var(--bg-subtle);
+  border: 2px dashed var(--accent-primary);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
 }
 
-.onboarding-tooltip--center .onboarding-tooltip-footer {
-  flex-direction: column;
-  gap: 14px;
+.onb-mockup-code-label {
+  font-size: var(--text-sm);
+  font-weight: 800;
+  color: var(--accent-primary);
+  letter-spacing: 1px;
 }
 
-.onboarding-dots {
+.onb-mockup-code-btn {
+  background: var(--accent-gradient);
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+}
+
+.onb-mockup-row {
   display: flex;
-  gap: 6px;
-  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
 }
 
-.onboarding-dot {
-  width: 6px;
-  height: 6px;
+.onb-mockup-rank { font-size: 18px; flex-shrink: 0; }
+
+.onb-mockup-name {
+  flex: 1;
+  text-align: left;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.onb-mockup-pts {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent-primary);
+  white-space: nowrap;
+}
+
+.onb-mockup-sword {
+  font-size: 18px;
+  flex-shrink: 0;
+  animation: onbSwordPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes onbSwordPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.18); }
+}
+
+/* ── Profile mockup pieces ── */
+
+.onb-mockup-avatar {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--bg-subtle);
+  border: 3px solid var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.onb-mockup-avatar-edit {
+  position: absolute;
+  bottom: -2px;
+  right: -4px;
+  font-size: 14px;
+  background: var(--bg-card);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.onb-mockup-stats-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.onb-mockup-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 8px;
+}
+
+.onb-mockup-stat-val { font-size: var(--text-sm); font-weight: 800; color: var(--text-primary); }
+.onb-mockup-stat-lbl { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+
+.onb-mockup-badges-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.onb-mockup-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent-warm-bg);
+  border: 2px solid var(--warning-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.onb-mockup-badge--locked {
+  background: var(--bg-muted);
+  border-color: var(--border);
+  opacity: 0.6;
+}
+
+/* ── Bottom nav bar: dots + Back/Next ── */
+
+.onb-bottom-bar {
+  flex-shrink: 0;
+  padding: 20px 24px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.onb-dots {
+  display: flex;
+  gap: 7px;
+}
+
+.onb-dot {
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--border-strong);
   transition: all var(--transition-base);
 }
 
-.onboarding-dot--active {
+.onb-dot--active {
   background: var(--accent-primary);
-  width: 16px;
-  border-radius: 3px;
+  width: 22px;
+  border-radius: 4px;
 }
 
-.onboarding-tooltip-actions {
+.onb-nav-row {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.onb-back-btn {
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 22px;
+  font-size: var(--text-base);
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-body);
+  box-shadow: none;
+  transform: none;
   flex-shrink: 0;
 }
 
-.onboarding-tooltip--center .onboarding-tooltip-actions {
-  width: 100%;
-}
+.onb-back-btn:hover { background: var(--bg-subtle); transform: none; box-shadow: none; }
+.onb-back-btn.hidden { visibility: hidden; }
 
-.onboarding-back-btn,
-.onboarding-next-btn {
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  border-radius: var(--radius-md);
-  padding: 8px 16px;
-  cursor: pointer;
-  box-shadow: none;
-  transform: none;
-  border: none;
-}
-
-.onboarding-back-btn {
-  background: var(--bg-subtle);
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-}
-
-.onboarding-back-btn:hover { background: var(--bg-muted); transform: none; box-shadow: none; }
-.onboarding-back-btn.hidden { display: none; }
-
-.onboarding-next-btn {
+.onb-next-btn {
+  flex: 1;
   background: var(--accent-gradient);
   color: white;
-  flex: 1;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px 22px;
+  font-size: var(--text-base);
+  font-weight: 800;
+  cursor: pointer;
+  font-family: var(--font-body);
+  box-shadow: var(--shadow-sm);
+  transform: none;
+  transition: opacity var(--transition-base);
 }
 
-.onboarding-tooltip--center .onboarding-next-btn { flex: 1; padding: 12px 16px; font-size: var(--text-base); }
-
-.onboarding-next-btn:hover { transform: none; box-shadow: var(--shadow-sm); opacity: 0.95; }
+.onb-next-btn:hover { opacity: 0.92; transform: none; box-shadow: var(--shadow-sm); }
 
 /* ── Responsive ── */
 
 @media (max-width: 380px) {
-  .onboarding-tooltip { padding: 16px 14px 12px; }
-  .onboarding-tooltip-title { font-size: var(--text-base); }
-  .onboarding-tooltip-body  { font-size: var(--text-xs); }
+  .onb-icon-badge   { width: 96px; height: 96px; font-size: 44px; margin-bottom: 24px; }
+  .onb-slide-title  { font-size: var(--text-xl); }
+  .onb-slide-body   { font-size: var(--text-sm); }
+  .onb-mockup-panel { padding: 14px 12px; }
 }
 
+@media (max-height: 640px) {
+  .onb-icon-badge { width: 88px; height: 88px; font-size: 40px; margin-bottom: 18px; }
+   }
