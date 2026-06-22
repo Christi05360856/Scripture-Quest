@@ -1,0 +1,32 @@
+name: Pending Pushes Dispatcher
+
+# Runs every 3 minutes to deliver challenge/battle/rematch
+# notifications that the client app writes to the
+# `pendingPushes` Firestore collection. This is the free-tier
+# alternative to a Cloud Functions onCreate trigger (which
+# would require the Blaze plan) — worst-case delivery delay
+# is ~3 minutes instead of instant.
+on:
+  schedule:
+    - cron: '*/3 * * * *'
+  workflow_dispatch: {}    # allows manual trigger from the Actions tab for testing
+
+jobs:
+  dispatch-pushes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install firebase-admin
+
+      - name: Run pending pushes dispatcher
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/dispatchPendingPushes.js
