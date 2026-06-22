@@ -137,8 +137,9 @@ function showScreen(name) {
   });
 
   const nav   = document.getElementById('bottom-nav');
-  const noNav = ['loading','quiz','result','round','study',
+  const noNav = ['loading','onboarding-intro','quiz','result','round','study',
                  'battle','battle-result','challenge'];
+         
   if (nav) nav.classList.toggle('hidden', noNav.includes(name));
 
   document.querySelectorAll('.nav-item').forEach(btn => {
