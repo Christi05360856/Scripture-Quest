@@ -20,6 +20,35 @@
   <link rel="stylesheet" href="/styles/components.css" />
   <link rel="stylesheet" href="/styles/path.css" />
   <link rel="stylesheet" href="/styles/onboarding.css" />
+    <style>
+    .password-field-wrap {
+      position: relative;
+      display: flex;
+    }
+    .password-field-wrap input {
+      flex: 1;
+      padding-right: 44px !important;
+    }
+    .password-toggle-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 6px;
+      font-size: 15px;
+      box-shadow: none;
+    }
+    .password-toggle-btn:hover {
+      color: var(--text-secondary);
+      transform: translateY(-50%);
+      box-shadow: none;
+    }
+    </style>
+  
   <title>ScriptureQuest — Daily Bible Quiz</title>
 <base target="_blank">
 </head>
@@ -923,14 +952,26 @@
       <div id="auth-message" class="auth-error" role="alert"></div>
       <div id="login-form" class="auth-form">
         <input type="email" id="login-email" placeholder="Email address" autocomplete="email" required />
-        <input type="password" id="login-password" placeholder="Password" autocomplete="current-password" required />
+                <div class="password-field-wrap">
+          <input type="password" id="login-password" placeholder="Password" autocomplete="current-password" required />
+          <button type="button" class="password-toggle-btn" id="login-password-toggle" aria-label="Show password">
+            <i class="fas fa-eye"></i>
+          </button>
+                </div>
+        
         <button id="login-btn" class="btn-primary btn-full"><i class="fas fa-sign-in-alt"></i> Sign In</button>
         <button id="forgot-btn" class="btn-ghost btn-sm" style="color:var(--text-muted);font-size:13px">Forgot password?</button>
       </div>
       <div id="register-form" class="auth-form hidden">
         <input type="text" id="reg-name" placeholder="Full name" autocomplete="name" required />
         <input type="email" id="reg-email" placeholder="Email address" autocomplete="email" required />
-        <input type="password" id="reg-password" placeholder="Password (min 6 characters)" autocomplete="new-password" required />
+                <div class="password-field-wrap">
+          <input type="password" id="reg-password" placeholder="Password (min 6 characters)" autocomplete="new-password" required />
+          <button type="button" class="password-toggle-btn" id="reg-password-toggle" aria-label="Show password">
+            <i class="fas fa-eye"></i>
+          </button>
+                </div>
+        
         <button id="register-btn" class="btn-primary btn-full"><i class="fas fa-user-plus"></i> Create Account</button>
       </div>
       <button onclick="SQ.closeAuthModal()" class="btn-ghost btn-sm" style="margin-top:8px;color:var(--text-muted);font-size:13px">Cancel</button>
