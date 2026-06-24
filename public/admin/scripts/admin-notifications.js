@@ -1,5 +1,6 @@
 // ============================================
 // admin-notifications.js  — Bible Battle Admin
+// CORRECTED — matches HTML IDs and CSS vars
 // ============================================
 import { db, currentAdmin, fmtDate, esc, toast, showConfirm }
   from './admin-core.js';
@@ -80,24 +81,24 @@ export async function loadNotifHistory() {
       orderBy('createdAt','desc'), limit(8)
     ));
     if (snap.empty) {
-      el.innerHTML = '<div class="es" style="padding:24px"><i class="fas fa-bell-slash"></i>No notifications yet</div>';
+      el.innerHTML = '<div class="empty-state" style="padding:24px"><i class="fas fa-bell-slash"></i>No notifications yet</div>';
       return;
     }
     el.innerHTML = '';
     snap.forEach(d => {
       const n  = { id: d.id, ...d.data() };
-      const sb = n.status === 'sent' ? 'bg-ok' : n.status === 'failed' ? 'bg-err' : 'bg-warn';
+      const sb = n.status === 'sent' ? 'badge-green' : n.status === 'failed' ? 'badge-red' : 'badge-amber';
       el.innerHTML += `
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--b)">
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)">
           <div style="flex:1">
-            <div style="font-size:13px;font-weight:700;color:var(--t)">${esc(n.title||'—')}</div>
-            <div style="font-size:11px;color:var(--t2);margin-top:2px">${esc((n.body||'').slice(0,55))}…</div>
-            <div style="font-size:10px;color:var(--mu);margin-top:3px">${fmtDate(n.createdAt)} · ${esc(n.audience||'all')}</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text)">${esc(n.title||'—')}</div>
+            <div style="font-size:11px;color:var(--text-2);margin-top:2px">${esc((n.body||'').slice(0,55))}…</div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:3px">${fmtDate(n.createdAt)} · ${esc(n.audience||'all')}</div>
           </div>
           <span class="badge ${sb}">${esc(n.status||'pending')}</span>
         </div>`;
     });
-  } catch(e) { el.innerHTML = `<div class="es" style="padding:20px">${esc(e.message)}</div>`; }
+  } catch(e) { el.innerHTML = `<div class="empty-state" style="padding:20px">${esc(e.message)}</div>`; }
 }
 
 window._adminNotif = { updatePreview, toggleSchedule, fillTemplate, clearNotif, sendNotif };
