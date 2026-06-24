@@ -1,8 +1,6 @@
 // ============================================
 // admin-core.js  — Bible Battle Admin
-// This is a MODULE. It initialises Firebase
-// and exports db, auth, and all shared helpers.
-// Every other admin script imports from here.
+// CORRECTED VERSION — matches HTML IDs/classes exactly
 // ============================================
 
 import { initializeApp }
@@ -73,8 +71,9 @@ export function esc(s) {
 export function toast(msg, type = 'inf') {
   document.querySelectorAll('.toast').forEach(t => t.remove());
   const icons = { ok:'✅', err:'❌', inf:'ℹ️', warn:'⚠️' };
+  const mapType = { ok: 'success', err: 'error', inf: 'info', warn: 'warning' };
   const t = document.createElement('div');
-  t.className = `toast toast-${type}`;
+  t.className = `toast toast-${mapType[type] || type}`;
   t.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${esc(msg)}</span>`;
   document.body.appendChild(t);
   setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; }, 3500);
@@ -104,14 +103,9 @@ export function initTheme() {
 }
 function _applyThemeIcons(theme) {
   const dark  = theme === 'dark';
-  const icon  = dark ? 'fas fa-moon'  : 'fas fa-sun';
-  const label = dark ? 'Dark Mode'    : 'Light Mode';
-  const el1   = document.getElementById('theme-icon');
-  const el2   = document.getElementById('theme-label');
-  const el3   = document.getElementById('tb-theme');
-  if (el1) el1.className = icon;
-  if (el2) el2.textContent = label;
-  if (el3) el3.querySelector('i').className = icon;
+  const iconClass  = dark ? 'fas fa-moon'  : 'fas fa-sun';
+  const el = document.getElementById('admin-theme-icon');
+  if (el) el.className = iconClass;
 }
 export function toggleTheme() {
   const html  = document.documentElement;
@@ -125,34 +119,34 @@ export function toggleTheme() {
 // ── Sidebar ───────────────────────────────────────
 export function toggleSB() {
   document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('sb-overlay').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
 }
 export function closeSB() {
   document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sb-overlay').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
 }
 
 // ── Navigation ────────────────────────────────────
 const TITLES = {
   overview:      'Overview',
-  users:         'User Management',
   rewards:       'Reward Management',
+  users:         'User Management',
   questions:     'Question Bank',
   leaderboard:   'Leaderboard',
   announce:      'Announcements',
   notifications: 'Push Notifications',
-  launch:        'Launch Tools'
+  launch:        'Launch Tools',
+  settings:      'Settings'
 };
 let _curSec = 'overview';
 export function getCurSec() { return _curSec; }
 
 export function showSec(name) {
-  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.ni').forEach(b => b.classList.remove('active'));
-  document.getElementById('sec-' + name)?.classList.add('active');
-  document.querySelectorAll(`[data-sec="${name}"]`).forEach(b => b.classList.add('active'));
-  const tbTitle = document.getElementById('tb-title');
-  if (tbTitle) tbTitle.textContent = TITLES[name] || name;
+  // FIXED: use .section (not .sec) and section- prefix (not sec-)
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('section-' + name)?.classList.add('active');
+  document.querySelectorAll(`[data-section="${name}"]`).forEach(b => b.classList.add('active'));
   _curSec = name;
   closeSB();
 }
@@ -160,7 +154,7 @@ export function showSec(name) {
 // ── Password toggle (login) ───────────────────────
 export function togglePw() {
   const i   = document.getElementById('admin-password');
-  const eye = document.getElementById('pw-eye-icon');
+  const eye = document.getElementById('admin-pw-icon');
   const show = i.type === 'password';
   i.type = show ? 'text' : 'password';
   eye.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
@@ -215,15 +209,11 @@ export function startAuthListener(onSignedIn, onSignedOut) {
 // ── Countdown ────────────────────────────────────
 export function startCountdown() {
   const wl1 = document.getElementById('ov-week-id');
-  const wl2 = document.getElementById('ov-week-label');
   const c1  = document.getElementById('ov-countdown');
-  const c2  = document.getElementById('ov-countdown2');
   if (wl1) wl1.textContent = `Week ${getWeekNum()}`;
-  if (wl2) wl2.textContent = `Week ${getWeekNum()} — ${getWeekId()}`;
   const tick = () => {
     const v = fmtCountdown(getMsLeft());
     if (c1) c1.textContent = v;
-    if (c2) c2.textContent = v;
   };
   tick();
   setInterval(tick, 1000);
