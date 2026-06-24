@@ -158,6 +158,45 @@
 </div>
 
 
+<!-- ══ SCREEN: NOTIFICATION GATE (shown once after onboarding, before path) ══ -->
+<div id="screen-notification-gate" class="screen hidden">
+  <div class="onboarding-screen-wrap">
+
+    <div class="onb-top-bar">
+      <!-- intentionally empty — no skip, user must choose enable or continue -->
+    </div>
+
+    <div class="onb-slide-area" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:32px 24px;text-align:center">
+      <div style="font-size:72px;margin-bottom:24px;animation:bounceIn 0.6s ease">🔔</div>
+      <h2 id="notif-gate-title" class="onboarding-title" style="font-size:24px;font-weight:900;margin-bottom:12px">Stay in the Loop</h2>
+      <p id="notif-gate-body" style="font-size:15px;color:var(--text-secondary);line-height:1.6;max-width:320px;margin:0 auto 32px">
+        Turn on notifications so you never miss a streak reminder,
+        a friend's challenge, or a battle invite. You can change
+        this anytime in Settings.
+      </p>
+
+      <button id="notif-gate-enable-btn" class="btn-primary btn-full" style="max-width:320px;font-size:16px;padding:14px">
+        <i class="fas fa-bell"></i> Enable Notifications
+      </button>
+
+      <div id="notif-gate-continue-row" class="hidden" style="margin-top:16px;width:100%;max-width:320px">
+        <button id="notif-gate-continue-btn" class="btn-ghost btn-full" style="color:var(--text-muted);font-size:14px">
+          Continue without notifications
+        </button>
+      </div>
+    </div>
+
+    <div class="onb-bottom-bar" style="padding:16px 24px">
+      <!-- progress dots: onboarding had dots, gate is a single step so just a subtle hint -->
+      <p style="text-align:center;font-size:12px;color:var(--text-muted);font-weight:600">
+        You can always change this later in <strong>Settings → Notifications</strong>
+      </p>
+    </div>
+
+  </div>
+</div>
+
+
 <!-- ══ SCREEN: PATH (Learning Path — new home screen) ══ -->
 <div id="screen-path" class="screen hidden">
   <div class="path-screen-wrap">
