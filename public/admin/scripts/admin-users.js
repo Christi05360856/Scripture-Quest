@@ -1,5 +1,6 @@
 // ============================================
 // admin-users.js  — Bible Battle Admin
+// CORRECTED — matches HTML IDs and CSS vars
 // ============================================
 import { db, esc, toast, showConfirm }
   from './admin-core.js';
@@ -11,7 +12,7 @@ let _users = [];
 export async function loadUsers() {
   const tbody = document.getElementById('users-tbody');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--mu);padding:24px">Loading…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-3);padding:24px">Loading…</td></tr>';
   try {
     const [uSnap, sSnap] = await Promise.all([
       getDocs(query(collection(db,'users'), orderBy('createdAt','desc'))),
@@ -21,8 +22,6 @@ export async function loadUsers() {
     sSnap.forEach(d => sm[d.id] = d.data());
     _users = [];
     uSnap.forEach(d => _users.push({ id: d.id, ...d.data(), stats: sm[d.id] || {} }));
-    const cnt = document.getElementById('users-count');
-    if (cnt) cnt.textContent = `(${_users.length})`;
     renderUsers(_users);
   } catch(e) { toast('Failed to load users: ' + e.message, 'err'); }
 }
@@ -46,25 +45,25 @@ function renderUsers(list) {
   const tbody = document.getElementById('users-tbody');
   if (!tbody) return;
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="8"><div class="es"><i class="fas fa-users"></i>No users found</div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><i class="fas fa-users"></i>No users found</div></td></tr>';
     return;
   }
   tbody.innerHTML = list.map(u => `
     <tr>
-      <td style="color:var(--t);font-weight:700">${esc(u.displayName||'—')}</td>
-      <td style="color:var(--mu)">${esc(u.email||'—')}</td>
+      <td style="color:var(--text);font-weight:700">${esc(u.displayName||'—')}</td>
+      <td style="color:var(--text-3)">${esc(u.email||'—')}</td>
       <td>${u.stats?.level || 1}</td>
-      <td style="color:var(--warn);font-weight:700">${(u.stats?.totalXp||0).toLocaleString()}</td>
+      <td style="color:var(--amber);font-weight:700">${(u.stats?.totalXp||0).toLocaleString()}</td>
       <td>${u.stats?.currentStreak || 0} 🔥</td>
       <td>${u.stats?.quizzesTaken || 0}</td>
       <td>${u.isBanned
-        ? '<span class="badge bg-err">Suspended</span>'
+        ? '<span class="badge badge-red">Suspended</span>'
         : u.profileComplete
-          ? '<span class="badge bg-ok">Active</span>'
-          : '<span class="badge bg-warn">Incomplete</span>'}</td>
+          ? '<span class="badge badge-green">Active</span>'
+          : '<span class="badge badge-amber">Incomplete</span>'}</td>
       <td>${!u.isBanned
-        ? `<button class="btn btn-err btn-xs" onclick="window._adminUsers.toggleBan('${u.id}',true)"><i class="fas fa-ban"></i> Suspend</button>`
-        : `<button class="btn btn-ok btn-xs"  onclick="window._adminUsers.toggleBan('${u.id}',false)"><i class="fas fa-check"></i> Restore</button>`
+        ? `<button class="btn btn-danger btn-sm" onclick="window._adminUsers.toggleBan('${u.id}',true)"><i class="fas fa-ban"></i> Suspend</button>`
+        : `<button class="btn btn-success btn-sm"  onclick="window._adminUsers.toggleBan('${u.id}',false)"><i class="fas fa-check"></i> Restore</button>`
       }</td>
     </tr>`).join('');
 }
