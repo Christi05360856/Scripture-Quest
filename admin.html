@@ -1376,14 +1376,27 @@
      admin-core.js MUST load as a module first.
      All other scripts depend on globals it exposes.
 ══════════════════════════════════════ -->
+=========================================================
+ FIND THIS BLOCK IN YOUR admin.html  (near bottom, before </body>)
+=========================================================
+
 <script type="module" src="/admin/scripts/admin-core.js"></script>
-<script src="/admin/scripts/admin-overview.js"      defer></script>
-<script src="/admin/scripts/admin-rewards.js"       defer></script>
-<script src="/admin/scripts/admin-users.js"         defer></script>
-<script src="/admin/scripts/admin-questions.js"     defer></script>
-<script src="/admin/scripts/admin-leaderboard.js"   defer></script>
-<script src="/admin/scripts/admin-announcements.js" defer></script>
-<script src="/admin/scripts/admin-settings.js"      defer></script>
+<script src="/admin/scripts/admin-overview.js"></script>
+<script src="/admin/scripts/admin-rewards.js"></script>
+<script src="/admin/scripts/admin-users.js"></script>
+<script src="/admin/scripts/admin-questions.js"></script>
+<script src="/admin/scripts/admin-leaderboard.js"></script>
+<script src="/admin/scripts/admin-announcements.js"></script>
+
+=========================================================
+ REPLACE IT WITH THIS ONE LINE:
+=========================================================
+
+<script type="module" src="/admin/scripts/admin-init.js"></script>
+
+=========================================================
+ THAT IS THE ONLY CHANGE NEEDED IN admin.html
+=========================================================
 
 </body>
 </html>
