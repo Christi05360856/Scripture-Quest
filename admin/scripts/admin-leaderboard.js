@@ -4,7 +4,7 @@
 // Non-module script — relies on window.db/fb/helpers
 // from admin-core.js, which must load first.
 // Extracted verbatim — no logic changes.
-// ============================================
+// ===========================================
 
 (function () {
   const { collection, doc, getDocs, deleteDoc, query, orderBy, limit } = window.fb;
