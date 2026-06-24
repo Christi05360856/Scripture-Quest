@@ -6,7 +6,7 @@
 //
 // Everything from the previous split version is
 // UNCHANGED below except where marked "TIER 1 NEW".
-// ============================================
+// ===========================================
 
 import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword,
