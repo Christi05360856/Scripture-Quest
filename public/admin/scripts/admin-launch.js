@@ -1,5 +1,6 @@
 // ============================================
 // admin-launch.js  — Bible Battle Admin
+// CORRECTED — matches HTML IDs
 // ============================================
 import { db, fmtCountdown, getMsw, getWeekId, toast, showConfirm }
   from './admin-core.js';
