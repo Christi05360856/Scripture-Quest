@@ -17,8 +17,7 @@ import { setState, getState, getCurrentUser,
          getUserProfile, getUserStats, subscribe } from './state/store.js';
 import { showToast }                           from './utils/toast.js';
 import { getCurrentWeekId, getDisplayWeek,
-         getTimeUntilNextWeek, formatCountdown,
-         ensureWeekEpochLoaded } from './utils/week.js';
+         getTimeUntilNextWeek, formatCountdown } from './utils/week.js';
 import { LAST_SEEN_WEEK, SCORE_PASS_THRESHOLD,
          PENDING_BATTLE_KEY }                  from './utils/constants.js';
 import { AVATARS, mountAvatar, renderAvatarSVG } from './components/avatar.js';
@@ -36,6 +35,11 @@ import {
       initOnboardingScreen,
       clearOnboardingSeen
     } from './pages/onboarding.page.js';
+import {
+      shouldShowNotificationGate,
+      markNotificationGateSeen,
+      initNotificationGateScreen
+    } from './pages/notification-gate.page.js';
 import { startPresenceHeartbeat, stopPresenceHeartbeat,
          subscribeToPresenceList, unsubscribePresenceList,
          getPresenceDotHtml }                  from './services/presence.service.js';
@@ -125,7 +129,7 @@ async function getRoundResultPage() {
 // SCREEN MANAGEMENT
 // ============================================
 
-const SCREENS = ['loading','landing','onboarding-intro','path','quiz','result',
+const SCREENS = ['loading','landing','onboarding-intro','notification-gate','path','quiz','result',
                      'leaderboard','rewards','profile','settings',
                      'battle','battle-result','challenge',
                      'study','round','round-result',
@@ -138,7 +142,7 @@ function showScreen(name) {
   });
 
   const nav   = document.getElementById('bottom-nav');
-  const noNav = ['loading','onboarding-intro','quiz','result','round','study',
+  const noNav = ['loading','onboarding-intro','notification-gate','quiz','result','round','study',
                  'battle','battle-result','challenge'];
          
   if (nav) nav.classList.toggle('hidden', noNav.includes(name));
@@ -379,10 +383,55 @@ function _unsubMatch() {
 // AUTH LISTENER
 // ============================================
 
+// ============================================
+// AUTH ROUTING HELPERS
+// Sequence: Onboarding (once) → Notification Gate (once) → Path
+// Each step calls the next via callback so the chain is explicit
+// and easy to extend without nesting.
+// ============================================
+
+// Step 3 of 3 — final destination: path screen (or challenge accept if code present)
+function _routeToApp() {
+  const code = getChallengeCodeFromURL();
+  if (code) {
+    _pendingChallengeCode = code;
+    clearChallengeFromURL();
+    showScreen('path');
+    setTimeout(() => showChallengeAcceptModal(code), 800);
+  } else {
+    showScreen('path');
+  }
+}
+
+// Step 2 of 3 — notification gate (shown once per user lifetime, authenticated only)
+function _routeAfterOnboarding() {
+  if (shouldShowNotificationGate()) {
+    showScreen('notification-gate');
+    initNotificationGateScreen(() => {
+      // markNotificationGateSeen() is already called inside the page module
+      // before it fires this callback, so we just move on.
+      _routeToApp();
+    });
+    return;
+  }
+  _routeToApp();
+}
+
+// Step 1 of 3 — onboarding (shown once per user lifetime)
+function _routeAfterAuth() {
+  if (shouldShowOnboarding()) {
+    showScreen('onboarding-intro');
+    initOnboardingScreen(() => {
+      markOnboardingSeen();
+      _routeAfterOnboarding();
+    });
+    return;
+  }
+  _routeAfterOnboarding();
+}
+
 initAuthListener(
   async (user, profile, stats) => {
-    await ensureWeekEpochLoaded();
-
     await initTheme(profile);
     checkNewWeek();
     checkAndShowAnnouncements().catch(e => console.warn('[Announce]', e.message));
@@ -395,33 +444,8 @@ initAuthListener(
 
     _checkPendingBattleResult(user).catch(e => console.warn('[PendingBattle]', e.message));
 
-        // ── Onboarding: show once per lifetime, then route normally ──
-    if (shouldShowOnboarding()) {
-      showScreen('onboarding-intro');
-      initOnboardingScreen(() => {
-        markOnboardingSeen();
-        const code = getChallengeCodeFromURL();
-        if (code) {
-          _pendingChallengeCode = code;
-          clearChallengeFromURL();
-          showScreen('path');
-          setTimeout(() => showChallengeAcceptModal(code), 800);
-        } else {
-          showScreen('path');
-        }
-      });
-      return;
-    }
-
-    const code = getChallengeCodeFromURL();
-    if (code) {
-      _pendingChallengeCode = code;
-      clearChallengeFromURL();
-      showScreen('path');
-      setTimeout(() => showChallengeAcceptModal(code), 800);
-    } else {
-      showScreen('path');
-    }
+    // ── Route: Onboarding → Notification Gate → Path ──
+    _routeAfterAuth();
   },
          
   () => {
