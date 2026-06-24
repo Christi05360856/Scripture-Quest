@@ -403,13 +403,12 @@ function _routeToApp() {
   }
 }
 
-// Step 2 of 3 — notification gate (shown once per user lifetime, authenticated only)
-function _routeAfterOnboarding() {
-  if (shouldShowNotificationGate()) {
-    showScreen('notification-gate');
-    initNotificationGateScreen(() => {
-      // markNotificationGateSeen() is already called inside the page module
-      // before it fires this callback, so we just move on.
+// Step 2 of 3 — onboarding (shown once per user lifetime)
+function _routeAfterNotificationGate() {
+  if (shouldShowOnboarding()) {
+    showScreen('onboarding-intro');
+    initOnboardingScreen(() => {
+      markOnboardingSeen();
       _routeToApp();
     });
     return;
@@ -417,17 +416,18 @@ function _routeAfterOnboarding() {
   _routeToApp();
 }
 
-// Step 1 of 3 — onboarding (shown once per user lifetime)
+// Step 1 of 3 — notification gate (shown once per user lifetime, authenticated only)
 function _routeAfterAuth() {
-  if (shouldShowOnboarding()) {
-    showScreen('onboarding-intro');
-    initOnboardingScreen(() => {
-      markOnboardingSeen();
-      _routeAfterOnboarding();
+  if (shouldShowNotificationGate()) {
+    showScreen('notification-gate');
+    initNotificationGateScreen(() => {
+      // markNotificationGateSeen() is already called inside the page module
+      // before it fires this callback, so we just move on.
+      _routeAfterNotificationGate();
     });
     return;
   }
-  _routeAfterOnboarding();
+  _routeAfterNotificationGate();
 }
 
 initAuthListener(
@@ -444,7 +444,7 @@ initAuthListener(
 
     _checkPendingBattleResult(user).catch(e => console.warn('[PendingBattle]', e.message));
 
-    // ── Route: Onboarding → Notification Gate → Path ──
+    // ── Route: Notification Gate → Onboarding → Path ──
     _routeAfterAuth();
   },
          
