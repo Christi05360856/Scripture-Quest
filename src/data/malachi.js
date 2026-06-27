@@ -13,7 +13,7 @@ export const malachi = {
         "God's name would be great among the nations, from the rising of the sun to its setting, with pure offerings.",
         "The priests had corrupted the covenant of Levi, showing partiality in instruction and causing many to stumble."
       ],
-      "keyVerse": "'I have loved you,' says the Lord. 'But you ask, "How have you loved us?"' 'Was not Esau Jacob's brother?' declares the Lord. 'Yet I have loved Jacob, but Esau I have hated.' — Malachi 1:2-3 (NIV)",
+      "keyVerse": "'I have loved you,' says the Lord. 'But you ask, 'How have you loved us?'' 'Was not Esau Jacob's brother?' declares the Lord. 'Yet I have loved Jacob, but Esau I have hated.' — Malachi 1:2-3 (NIV)",
       "memoryPrompt": "Malachi means 'my messenger' — and his message is a series of sharp exchanges where God confronts Israel's spiritual indifference.",
       "challengeFact": "Malachi 1:11 prophesies that pure offerings will be offered to God's name among the nations — a text that shaped early Christian understanding of the Eucharist as a universal offering."
     },
