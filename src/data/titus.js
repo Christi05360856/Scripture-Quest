@@ -136,7 +136,7 @@ export const titus = {
         "questionType": "EXACT_WORDING",
         "question": "In Titus 2:11-12, what does Paul say the grace of God teaches us?",
         "options": [
-          "'For the grace of God has appeared that offers salvation to all people. It teaches us to say "No" to ungodliness and worldly passions, and to live self-controlled, upright and godly lives in this present age.'",
+          "'For the grace of God has appeared that offers salvation to all people. It teaches us to say 2018No2019 to ungodliness and worldly passions, and to live self-controlled, upright and godly lives in this present age.'",
           "'By grace you have been saved through faith, and this is not from yourselves, it is the gift of God.'",
           "'The grace of God trains us in righteousness and equips us for every good work.'",
           "'Grow in the grace and knowledge of our Lord and Savior Jesus Christ, and you will be established in the faith.'"
