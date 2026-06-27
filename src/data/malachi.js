@@ -230,7 +230,7 @@ export const malachi = {
         "questionType": "EXACT_WORDING",
         "question": "In Malachi 3:16-17, what was written for those who feared the Lord?",
         "options": [
-          "'A scroll of remembrance was written in his presence concerning those who feared the Lord and honoured his name. 'They will be mine," says the Lord Almighty, 'in the day when I make up my treasured possession.''",
+          "'A scroll of remembrance was written in his presence concerning those who feared the Lord and honoured his name. \u2018They will be mine,\u2019 says the Lord Almighty, \u2018in the day when I make up my treasured possession.\u2019'",
           "'The names of the righteous were recorded in the book of life, and they were sealed for the day of redemption.'",
           "'A covenant was established with those who loved the Lord, and he promised to be their God forever.'",
           "'The Lord remembered his faithful servants and promised to gather them from all the nations.'"
