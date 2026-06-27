@@ -47,13 +47,13 @@ import { kings1 }        from './kings1.js';
 // import { hosea }         from './hosea.js';
 // import { joel }          from './joel.js';
 // import { amos }          from './amos.js';
-// import { obadiah }       from './obadiah.js';
+import { obadiah }       from './obadiah.js';
 // import { jonah }         from './jonah.js';
 // import { micah }         from './micah.js';
-// import { nahum }         from './nahum.js';
+import { nahum }         from './nahum.js';
 // import { habakkuk }      from './habakkuk.js';
 // import { zephaniah }     from './zephaniah.js';
-// import { haggai }        from './haggai.js';
+import { haggai }        from './haggai.js';
 // import { zechariah }     from './zechariah.js';
 // import { malachi }       from './malachi.js';
 
@@ -77,15 +77,15 @@ import { john }          from './john.js';
 // import { timothy1 }      from './timothy1.js';
 // import { timothy2 }      from './timothy2.js';
 // import { titus }         from './titus.js';
-// import { philemon }      from './philemon.js';
+import { philemon }      from './philemon.js';
 // import { hebrews }       from './hebrews.js';
 // import { james }         from './james.js';
 // import { peter1 }        from './peter1.js';
 // import { peter2 }        from './peter2.js';
 // import { john1 }         from './john1.js';
-// import { john2 }         from './john2.js';
-// import { john3 }         from './john3.js';
-// import { jude }          from './jude.js';
+import { john2 }         from './john2.js';
+import { john3 }         from './john3.js';
+import { jude }          from './jude.js';
 
 // ── REVELATION ──────────────────────────────
 // import { revelation }    from './revelation.js';
@@ -137,13 +137,13 @@ export const learningPath = {
   // ...hosea,
   // ...joel,
   // ...amos,
-  // ...obadiah,
+  ...obadiah,
   // ...jonah,
   // ...micah,
-  // ...nahum,
+  ...nahum,
   // ...habakkuk,
   // ...zephaniah,
-  // ...haggai,
+  ...haggai,
   // ...zechariah,
   // ...malachi,
 
@@ -167,15 +167,15 @@ export const learningPath = {
   // ...timothy1,
   // ...timothy2,
   // ...titus,
-  // ...philemon,
+  ...philemon,
   // ...hebrews,
   // ...james,
   // ...peter1,
   // ...peter2,
   // ...john1,
-  // ...john2,
-  // ...john3,
-  // ...jude,
+  ...john2,
+  ...john3,
+  ...jude,
 
   // ── REVELATION ──
   // ...revelation,
