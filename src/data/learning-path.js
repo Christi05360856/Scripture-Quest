@@ -25,16 +25,16 @@ import { kings1 }        from './kings1.js';
 //import { kings2 }        from './kings2.js';
 //import { chronicles1 }   from './chronicles1.js';
 //import { chronicles2 }   from './chronicles2.js';
-//import { ezra }          from './ezra.js';
+import { ezra }          from './ezra.js';
 //import { nehemiah }      from './nehemiah.js';
-//import { esther }        from './esther.js';
+import { esther }        from './esther.js';
 
 // ── WISDOM & POETRY ─────────────────────────
 //import { job }           from './job.js';
 //import { psalms }        from './psalms.js';
 // import { proverbs }      from './proverbs.js';
-// import { ecclesiastes }  from './ecclesiastes.js';
-// import { songofsongs }   from './songofsongs.js';
+import { ecclesiastes }  from './ecclesiastes.js';
+import { songofsongs }   from './songofsongs.js';
 
 // ── MAJOR PROPHETS ──────────────────────────
 // import { isaiah }        from './isaiah.js';
@@ -54,7 +54,7 @@ import { nahum }         from './nahum.js';
 import { habakkuk }      from './habakkuk.js';
 import { zephaniah }     from './zephaniah.js';
 import { haggai }        from './haggai.js';
-// import { zechariah }     from './zechariah.js';
+import { zechariah }     from './zechariah.js';
 import { malachi }       from './malachi.js';
 
 // ── THE GOSPELS ─────────────────────────────
@@ -115,16 +115,16 @@ export const learningPath = {
   //...kings2,
   //...chronicles1,
   //...chronicles2,
-  //...ezra,
+  ...ezra,
   //...nehemiah,
-  //...esther,
+  ...esther,
 
   // ── WISDOM & POETRY ──
   //...job,
   //...psalms,
   // ...proverbs,
-  // ...ecclesiastes,
-  // ...songofsongs,
+  ...ecclesiastes,
+  ...songofsongs,
 
   // ── MAJOR PROPHETS ──
   // ...isaiah,
@@ -144,7 +144,7 @@ export const learningPath = {
   ...habakkuk,
   ...zephaniah,
   ...haggai,
-  // ...zechariah,
+  ...zechariah,
   ...malachi,
 
   // ── THE GOSPELS ──
