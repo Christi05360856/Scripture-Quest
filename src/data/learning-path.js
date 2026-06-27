@@ -21,7 +21,7 @@ import { judges }        from './judges.js';
 import { ruth }          from './ruth.js';
 import { samuel1 }       from './samuel1.js';
 import { samuel2 }       from './samuel2.js';
-//import { kings1 }        from './kings1.js';
+import { kings1 }        from './kings1.js';
 //import { kings2 }        from './kings2.js';
 //import { chronicles1 }   from './chronicles1.js';
 //import { chronicles2 }   from './chronicles2.js';
@@ -111,7 +111,7 @@ export const learningPath = {
   ...ruth,
   ...samuel1,
   ...samuel2,
-  //...kings1,
+  ...kings1,
   //...kings2,
   //...chronicles1,
   //...chronicles2,
