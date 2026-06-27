@@ -22,11 +22,11 @@ import { ruth }          from './ruth.js';
 import { samuel1 }       from './samuel1.js';
 import { samuel2 }       from './samuel2.js';
 import { kings1 }        from './kings1.js';
-//import { kings2 }        from './kings2.js';
+import { kings2 }        from './kings2.js';
 //import { chronicles1 }   from './chronicles1.js';
 //import { chronicles2 }   from './chronicles2.js';
 import { ezra }          from './ezra.js';
-//import { nehemiah }      from './nehemiah.js';
+import { nehemiah }      from './nehemiah.js';
 import { esther }        from './esther.js';
 
 // ── WISDOM & POETRY ─────────────────────────
@@ -112,11 +112,11 @@ export const learningPath = {
   ...samuel1,
   ...samuel2,
   ...kings1,
-  //...kings2,
+  ...kings2,
   //...chronicles1,
   //...chronicles2,
   ...ezra,
-  //...nehemiah,
+  ...nehemiah,
   ...esther,
 
   // ── WISDOM & POETRY ──
