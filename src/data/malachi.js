@@ -45,7 +45,7 @@ export const malachi = {
           "'A son honours his father, and a servant his master. If I am a father, where is the honour due me? If I am a master, where is the respect due me?'",
           "'Have I not chosen you from all the nations? Why then do you treat me with contempt?'",
           "'The ox knows its master, and the donkey its owner's manger, but Israel does not know me.'",
-          "'Why do you call me "Lord, Lord" and do not do what I say?'"
+          "'Why do you call me 'Lord, Lord' and do not do what I say?'"
         ],
         "correctAnswer": 0,
         "verseReference": "Malachi 1:6"
@@ -138,7 +138,7 @@ export const malachi = {
         "options": [
           "'I will send my messenger, who will prepare the way before me. Then suddenly the Lord you are seeking will come to his temple; the messenger of the covenant, whom you desire, will come.'",
           "'Behold, I send my messenger before your face, who will prepare your way before you.'",
-          "'A voice of one calling in the wilderness, "Prepare the way for the Lord, make straight paths for him."'",
+          "'A voice of one calling in the wilderness, 'Prepare the way for the Lord, make straight paths for him.''",
           "'The messenger will come with a refiner's fire and purify the sons of Levi.'"
         ],
         "correctAnswer": 0,
@@ -230,7 +230,7 @@ export const malachi = {
         "questionType": "EXACT_WORDING",
         "question": "In Malachi 3:16-17, what was written for those who feared the Lord?",
         "options": [
-          "'A scroll of remembrance was written in his presence concerning those who feared the Lord and honoured his name. "They will be mine," says the Lord Almighty, "in the day when I make up my treasured possession."'",
+          "'A scroll of remembrance was written in his presence concerning those who feared the Lord and honoured his name. "They will be mine," says the Lord Almighty, 'in the day when I make up my treasured possession.''",
           "'The names of the righteous were recorded in the book of life, and they were sealed for the day of redemption.'",
           "'A covenant was established with those who loved the Lord, and he promised to be their God forever.'",
           "'The Lord remembered his faithful servants and promised to gather them from all the nations.'"
