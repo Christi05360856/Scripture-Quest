@@ -68,13 +68,13 @@ import { john }          from './john.js';
 // import { romans }        from './romans.js';
 // import { corinthians1 }  from './corinthians1.js';
 // import { corinthians2 }  from './corinthians2.js';
-// import { galatians }     from './galatians.js';
-// import { ephesians }     from './ephesians.js';
-// import { philippians }   from './philippians.js';
-// import { colossians }    from './colossians.js';
-// import { thessalonians1 } from './thessalonians1.js';
-// import { thessalonians2 } from './thessalonians2.js';
-// import { timothy1 }      from './timothy1.js';
+import { galatians }     from './galatians.js';
+import { ephesians }     from './ephesians.js';
+import { philippians }   from './philippians.js';
+import { colossians }    from './colossians.js';
+import { thessalonians1 } from './thessalonians1.js';
+import { thessalonians2 } from './thessalonians2.js';
+import { timothy1 }      from './timothy1.js';
 // import { timothy2 }      from './timothy2.js';
 import { titus }         from './titus.js';
 import { philemon }      from './philemon.js';
@@ -158,13 +158,13 @@ export const learningPath = {
   // ...romans,
   // ...corinthians1,
   // ...corinthians2,
-  // ...galatians,
-  // ...ephesians,
-  // ...philippians,
-  // ...colossians,
-  // ...thessalonians1,
-  // ...thessalonians2,
-  // ...timothy1,
+  ...galatians,
+  ...ephesians,
+  ...philippians,
+  ...colossians,
+  ...thessalonians1,
+  ...thessalonians2,
+  ...timothy1,
   // ...timothy2,
   ...titus,
   ...philemon,
