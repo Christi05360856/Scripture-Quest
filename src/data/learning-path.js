@@ -75,14 +75,14 @@ import { colossians }    from './colossians.js';
 import { thessalonians1 } from './thessalonians1.js';
 import { thessalonians2 } from './thessalonians2.js';
 import { timothy1 }      from './timothy1.js';
-// import { timothy2 }      from './timothy2.js';
+import { timothy2 }      from './timothy2.js';
 import { titus }         from './titus.js';
 import { philemon }      from './philemon.js';
 // import { hebrews }       from './hebrews.js';
-// import { james }         from './james.js';
-// import { peter1 }        from './peter1.js';
-// import { peter2 }        from './peter2.js';
-// import { john1 }         from './john1.js';
+import { james }         from './james.js';
+import { peter1 }        from './peter1.js';
+import { peter2 }        from './peter2.js';
+import { john1 }         from './john1.js';
 import { john2 }         from './john2.js';
 import { john3 }         from './john3.js';
 import { jude }          from './jude.js';
@@ -165,14 +165,14 @@ export const learningPath = {
   ...thessalonians1,
   ...thessalonians2,
   ...timothy1,
-  // ...timothy2,
+  ...timothy2,
   ...titus,
   ...philemon,
   // ...hebrews,
-  // ...james,
-  // ...peter1,
-  // ...peter2,
-  // ...john1,
+  ...james,
+  ...peter1,
+  ...peter2,
+  ...john1,
   ...john2,
   ...john3,
   ...jude,
