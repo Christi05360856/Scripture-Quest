@@ -182,6 +182,7 @@ function wireDashboardListeners() {
   wire('refresh-rewards-btn', 'click',  loadRewards);
   wire('rewards-search',      'input',  filterRewards);
   wire('rewards-filter',      'change', filterRewards);
+  // Note: Config panel buttons are wired dynamically in admin-rewards.js
 
   // Users
   wire('refresh-users-btn',   'click',  loadUsers);
