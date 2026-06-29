@@ -30,17 +30,17 @@ import { nehemiah }      from './nehemiah.js';
 import { esther }        from './esther.js';
 
 // ── WISDOM & POETRY ─────────────────────────
-//import { job }           from './job.js';
+import { job }           from './job.js';
 //import { psalms }        from './psalms.js';
-// import { proverbs }      from './proverbs.js';
+import { proverbs }      from './proverbs.js';
 import { ecclesiastes }  from './ecclesiastes.js';
 import { songofsongs }   from './songofsongs.js';
 
 // ── MAJOR PROPHETS ──────────────────────────
-// import { isaiah }        from './isaiah.js';
-// import { jeremiah }      from './jeremiah.js';
+import { isaiah }        from './isaiah.js';
+import { jeremiah }      from './jeremiah.js';
 import { lamentations }  from './lamentations.js';
-// import { ezekiel }       from './ezekiel.js';
+import { ezekiel }       from './ezekiel.js';
 import { daniel }        from './daniel.js';
 
 // ── MINOR PROPHETS ──────────────────────────
@@ -60,14 +60,14 @@ import { malachi }       from './malachi.js';
 // ── THE GOSPELS ─────────────────────────────
 import { matthew }       from './matthew.js';
 import { mark }          from './mark.js';
-// import { luke }          from './luke.js';
+import { luke }          from './luke.js';
 import { john }          from './john.js';
 
 // ── ACTS & EPISTLES ─────────────────────────
-// import { acts }          from './acts.js';
-// import { romans }        from './romans.js';
-// import { corinthians1 }  from './corinthians1.js';
-// import { corinthians2 }  from './corinthians2.js';
+import { acts }          from './acts.js';
+import { romans }        from './romans.js';
+import { corinthians1 }  from './corinthians1.js';
+import { corinthians2 }  from './corinthians2.js';
 import { galatians }     from './galatians.js';
 import { ephesians }     from './ephesians.js';
 import { philippians }   from './philippians.js';
@@ -78,7 +78,7 @@ import { timothy1 }      from './timothy1.js';
 import { timothy2 }      from './timothy2.js';
 import { titus }         from './titus.js';
 import { philemon }      from './philemon.js';
-// import { hebrews }       from './hebrews.js';
+import { hebrews }       from './hebrews.js';
 import { james }         from './james.js';
 import { peter1 }        from './peter1.js';
 import { peter2 }        from './peter2.js';
@@ -88,7 +88,7 @@ import { john3 }         from './john3.js';
 import { jude }          from './jude.js';
 
 // ── REVELATION ──────────────────────────────
-// import { revelation }    from './revelation.js';
+import { revelation }    from './revelation.js';
 
 // ============================================
 // MERGED LEARNING PATH
@@ -120,17 +120,17 @@ export const learningPath = {
   ...esther,
 
   // ── WISDOM & POETRY ──
-  //...job,
+  ...job,
   //...psalms,
-  // ...proverbs,
+  ...proverbs,
   ...ecclesiastes,
   ...songofsongs,
 
   // ── MAJOR PROPHETS ──
-  // ...isaiah,
-  // ...jeremiah,
+  ...isaiah,
+  ...jeremiah,
   ...lamentations,
-  // ...ezekiel,
+  ...ezekiel,
   ...daniel,
 
   // ── MINOR PROPHETS ──
@@ -150,14 +150,14 @@ export const learningPath = {
   // ── THE GOSPELS ──
   ...matthew,
   ...mark,
-  // ...luke,
+  ...luke,
   ...john,
 
   // ── ACTS & EPISTLES ──
-  // ...acts,
-  // ...romans,
-  // ...corinthians1,
-  // ...corinthians2,
+  ...acts,
+  ...romans,
+  ...corinthians1,
+  ...corinthians2,
   ...galatians,
   ...ephesians,
   ...philippians,
@@ -168,7 +168,7 @@ export const learningPath = {
   ...timothy2,
   ...titus,
   ...philemon,
-  // ...hebrews,
+  ...hebrews,
   ...james,
   ...peter1,
   ...peter2,
@@ -178,7 +178,7 @@ export const learningPath = {
   ...jude,
 
   // ── REVELATION ──
-  // ...revelation,
+  ...revelation,
 
 };
 
