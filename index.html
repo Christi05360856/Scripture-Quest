@@ -703,38 +703,94 @@
         <p>Earn points, reach milestones, claim your data rewards</p>
       </div>
 
-      <div class="points-hero">
-        <div class="points-hero-value" id="rewards-points">0</div>
-        <div class="points-hero-label">Total Points</div>
-      </div>
-
-      <div class="progress-bar-wrap">
-        <div class="progress-bar-track">
-          <div class="progress-bar-fill" id="rewards-progress-fill"></div>
+      <!-- ══ INACTIVE VIEW: Shown when rewards are disabled ══ -->
+      <div id="rewards-inactive-view" class="hidden">
+        <div style="text-align:center;padding:40px 20px;max-width:420px;margin:0 auto">
+          <!-- Trophy icon -->
+          <div style="font-size:72px;margin-bottom:16px">🏆</div>
+          <!-- Event Name -->
+          <h2 id="ri-event-name" style="font-size:22px;font-weight:800;color:var(--text-primary);margin-bottom:8px">Special Event</h2>
+          <!-- Prize display -->
+          <div style="font-size:18px;font-weight:700;color:var(--accent-primary);margin-bottom:20px">
+            <span id="ri-prize-display">Amazing prizes</span> coming soon!
+          </div>
+          <!-- Decorative divider -->
+          <div style="width:60px;height:4px;background:var(--accent-primary);border-radius:2px;margin:0 auto 20px"></div>
+          <!-- Status message -->
+          <p id="ri-status-message" style="font-size:15px;color:var(--text-secondary);line-height:1.6;margin-bottom:28px">
+            Cash prizes are currently disabled. Keep building your XP, streaks, and badges. Rewards will return for special events!
+          </p>
+          <!-- User's current points (motivation) -->
+          <div style="background:var(--bg-subtle);border-radius:var(--radius-lg);padding:20px;margin-bottom:24px">
+            <div style="font-size:13px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Your Current Points</div>
+            <div id="ri-user-points" style="font-size:36px;font-weight:800;color:var(--accent-primary)">0</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:4px">Keep earning — you'll be ready!</div>
+          </div>
+          <!-- What to do instead -->
+          <div style="text-align:left;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px">
+            <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">While you wait:</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-secondary)">
+                <span style="font-size:20px">📖</span>
+                <span>Complete daily quizzes to earn XP</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-secondary)">
+                <span style="font-size:20px">🔥</span>
+                <span>Build your streak for bonus rewards</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-secondary)">
+                <span style="font-size:20px">🏅</span>
+                <span>Unlock achievement badges</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-secondary)">
+                <span style="font-size:20px">⚔️</span>
+                <span>Challenge friends to battles</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="progress-labels">
-          <span>0</span>
-          <span id="rewards-next-milestone">5,000</span>
+      </div>
+      <!-- ══ END INACTIVE VIEW ══ -->
+
+      <!-- ══ ACTIVE VIEW: Shown when rewards are enabled ══ -->
+      <div id="rewards-active-view">
+
+        <div class="points-hero">
+          <div class="points-hero-value" id="rewards-points">0</div>
+          <div class="points-hero-label">Total Points</div>
         </div>
-      </div>
 
-      <h4 style="font-weight:800;color:var(--text-secondary);font-size:13px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px">Milestone Rewards</h4>
-      <div class="reward-tiers-list" id="reward-tiers-container"></div>
-
-      <div class="weekly-rewards-box">
-        <h4>🏆 Weekly Competition Rewards</h4>
-        <div class="weekly-tiers">
-          <div class="weekly-tier"><span class="weekly-medal">🥇</span><span class="weekly-label">2GB Data</span></div>
-          <div class="weekly-tier"><span class="weekly-medal">🥈</span><span class="weekly-label">1GB Data</span></div>
-          <div class="weekly-tier"><span class="weekly-medal">🥉</span><span class="weekly-label">500MB</span></div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="rewards-progress-fill"></div>
+          </div>
+          <div class="progress-labels">
+            <span>0</span>
+            <span id="rewards-next-milestone">5,000</span>
+          </div>
         </div>
-        <p class="weekly-note">Top 3 on the weekly leaderboard win at the end of each competition week.</p>
-      </div>
 
-      <div id="rewards-eligibility-note"
-           style="margin-top:16px;padding:12px 16px;background:var(--info-bg);border:1px solid var(--info-border);border-radius:var(--radius-md);font-size:13px;font-weight:600;color:var(--info-text)">
-        📋 To claim rewards, your phone number and network provider must be complete in your profile.
+        <h4 style="font-weight:800;color:var(--text-secondary);font-size:13px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px">Milestone Rewards</h4>
+        <div class="reward-tiers-list" id="reward-tiers-container"></div>
+
+        <div class="weekly-rewards-box">
+          <h4>🏆 Weekly Competition Rewards</h4>
+          <div class="weekly-tiers">
+            <div class="weekly-tier"><span class="weekly-medal">🥇</span><span class="weekly-label">2GB Data</span></div>
+            <div class="weekly-tier"><span class="weekly-medal">🥈</span><span class="weekly-label">1GB Data</span></div>
+            <div class="weekly-tier"><span class="weekly-medal">🥉</span><span class="weekly-label">500MB</span></div>
+          </div>
+          <p class="weekly-note">Top 3 on the weekly leaderboard win at the end of each competition week.</p>
+        </div>
+
+        <div id="rewards-eligibility-note"
+             style="margin-top:16px;padding:12px 16px;background:var(--info-bg);border:1px solid var(--info-border);border-radius:var(--radius-md);font-size:13px;font-weight:600;color:var(--info-text)">
+          📋 To claim rewards, your phone number and network provider must be complete in your profile.
+        </div>
+
       </div>
+      <!-- ══ END ACTIVE VIEW ══ -->
+
     </div>
   </div>
 
@@ -1124,10 +1180,6 @@
   </div>
 
   <!-- ══ MODAL: CREATE CHALLENGE ══ -->
-  <!-- FIX: This modal is now a standalone top-level element with correct closing tags. -->
-  <!-- Previously it was missing its closing </div></div> which swallowed every element -->
-  <!-- below it (accept modal, battle-result screen, avatar modal, FAB) into its DOM   -->
-  <!-- subtree — making them invisible whenever the modal was hidden.                   -->
   <div id="challenge-create-modal" class="modal hidden" role="dialog">
     <div class="modal-content" style="max-width:440px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -1246,8 +1298,6 @@
   </div>
 
   <!-- ══ FLOATING BATTLE BUTTON (FAB) ══ -->
-  <!-- FIX: onclick changed from SQ.showScreen('challenge') to SQ.openChallengeHub() -->
-  <!-- The old value routed to the legacy lobby screen instead of the hub modal.       -->
   <button id="battle-fab" class="battle-fab hidden" onclick="SQ.openChallengeHub()" aria-label="Open Battle Hub">
     ⚔️
     <span class="battle-fab-label">Battle</span>
@@ -1255,7 +1305,6 @@
   </button>
 
   <!-- ══ INCOMING CHALLENGE MODAL (direct challenge from leaderboard) ══ -->
-<!-- Shows as a full-screen overlay when someone challenges this user  -->
 <div id="incoming-challenge-overlay" class="incoming-challenge-overlay hidden">
   <div class="incoming-challenge-card">
     <div class="incoming-challenge-swords">⚔️</div>
@@ -1293,19 +1342,7 @@
   <button class="challenge-pending-cancel" id="challenge-pending-cancel">Cancel</button>
 </div>
 
- 
-<!-- ═══════════════════════════════════════════════════════
-     SECTION C — NEW FABS + MODALS
-     Insert immediately before closing #app div
-     (after existing challenge-pending-overlay closing div)
-     ═══════════════════════════════════════════════════════ -->
- 
 <!-- ══ DAILY CHALLENGE FAB (mirrors battle-fab pattern) ══ -->
-<!--
-  Sits above the learning path. Tapping opens the existing
-  Daily Challenge quiz flow (handleStartQuiz).
-  Hidden on quiz/result/battle screens (same logic as battle-fab).
--->
 <button id="daily-challenge-fab" class="daily-challenge-fab hidden"
         onclick="SQ.openDailyChallenge()" aria-label="Daily Challenge">
   📅
@@ -1314,11 +1351,6 @@
 </button>
  
 <!-- ══ DAILY CHALLENGE HUB MODAL ══ -->
-<!--
-  Opens when user taps the Daily Challenge FAB from the path screen.
-  Shows today's quiz availability, streak, and attempt count.
-  Mirrors the challenge-create-modal pattern.
--->
 <div id="daily-challenge-modal" class="modal hidden" role="dialog" aria-labelledby="daily-modal-title">
   <div class="modal-content" style="max-width:440px">
  
