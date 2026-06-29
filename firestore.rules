@@ -27,6 +27,12 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowed);
     }
 
+    // ── CONFIG (Rewards toggle + other platform settings) ──
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // ── USERS ──
     match /users/{uid} {
       allow read:   if isOwner(uid) || isAdmin();
