@@ -257,7 +257,8 @@ initAuthListener(
     });
 
     _checkPendingBattleResult(user).catch(e => console.warn('[PendingBattle]', e.message));
-
+    _checkWeeklyWinNotification(user).catch(e => console.warn('[WeeklyWin]', e.message));
+           
     // ── Route: Notification Gate → Onboarding → Path ──
     _routeAfterAuth();
   },
@@ -635,6 +636,46 @@ async function _checkPendingBattleResult(user) {
       localStorage.removeItem(PENDING_BATTLE_KEY);
     }
   } catch (e) { console.warn('[App] Pending battle check failed:', e.message); }
+}
+
+// ============================================================
+// WEEKLY WIN NOTIFICATION
+// Checks for unseen weekly leaderboard wins (top 3 finishes)
+// queued by the archiveWeeklyLeaderboard Cloud Function, and
+// shows a celebratory toast for each one found, then marks
+// them seen so they never show twice.
+// ============================================================
+
+async function _checkWeeklyWinNotification(user) {
+  try {
+    const { collection, query, where, limit, getDocs, doc, updateDoc }
+      = await import('firebase/firestore');
+    const { db } = await import('./firebase/config.js');
+
+    const q = query(
+      collection(db, 'pendingNotifications'),
+      where('userId', '==', user.uid),
+      where('type', '==', 'weekly_win'),
+      where('seen', '==', false),
+      limit(3) // in case they missed more than one week
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) return;
+
+    let delay = 800;
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      setTimeout(() => {
+        showToast(data.message, 'success', 6000);
+      }, delay);
+      delay += 1200;
+
+      updateDoc(doc(db, 'pendingNotifications', docSnap.id), { seen: true })
+        .catch(e => console.warn('[WeeklyWin] Could not mark seen:', e.message));
+    });
+  } catch (e) {
+    console.warn('[WeeklyWin] Check failed:', e.message);
+  }
 }
 
 // ============================================================
