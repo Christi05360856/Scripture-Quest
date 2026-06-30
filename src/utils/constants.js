@@ -20,9 +20,9 @@ export const REWARD_TIERS = [
   { threshold: 20000, reward: '5GB Data',   label: '5GB'   }
 ];
 export const WEEKLY_REWARDS = [
-  { rank: 1, reward: '2GB Data',   medal: '🥇' },
-  { rank: 2, reward: '1GB Data',   medal: '🥈' },
-  { rank: 3, reward: '500MB Data', medal: '🥉' }
+  { rank: 1, reward: '5,000 XP', xp: 5000, medal: '🥇' },
+  { rank: 2, reward: '2,500 XP', xp: 2500, medal: '🥈' },
+  { rank: 3, reward: '1,000 XP', xp: 1000, medal: '🥉' }
 ];
 
 export const QUIZ_STATE_KEY     = 'sq_quiz_state_v4';
@@ -103,3 +103,4 @@ export const PATH_SCREENS = {
 export const ONBOARDING_SEEN_KEY = 'sq_onboarding_seen_v1';
 
 export const NOTIFICATION_GATE_SEEN_KEY = 'sq_notif_gate_seen_v1';
+    
