@@ -2128,7 +2128,8 @@ async function startBattle(matchId, questions, match) {
       localStorage.removeItem(PENDING_BATTLE_KEY);
       showScreen('battle-result');
       renderBattleResult(result);
-    }
+    },
+    onExit: () => showScreen('path')
   });
 }
 
