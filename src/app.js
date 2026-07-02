@@ -45,6 +45,16 @@ import { sendDirectChallenge, listenForIncomingChallenges,
          stopIncomingChallengeListener, acceptDirectChallenge,
          rejectDirectChallenge, listenForChallengeResponse,
          stopOutgoingChallengeListener }        from './services/challenge.service.js';
+// ============================================================
+// GLOBAL ERROR CATCHER (temporary debug aid — mobile-safe)
+// ============================================================
+window.addEventListener('unhandledrejection', (e) => {
+  alert('UNHANDLED ERROR: ' + (e.reason?.message || e.reason));
+  console.error('[Unhandled Rejection]', e.reason);
+});
+window.addEventListener('error', (e) => {
+  alert('SCRIPT ERROR: ' + e.message + ' (' + e.filename + ':' + e.lineno + ')');
+});
 
 // ============================================================
 // MODULE STATE
@@ -118,8 +128,20 @@ async function getLocalQuestions() {
 
 async function getQuizPage()       { if (!_quizPage)       _quizPage       = await import('./pages/quiz.page.js');         return _quizPage; }
 async function getPathPage()       { if (!_pathPage)       _pathPage       = await import('./pages/path.page.js');         return _pathPage; }
-async function getStudyPage()      { if (!_studyPage)      _studyPage      = await import('./pages/study.page.js');        return _studyPage; }
-async function getRoundPage()      { if (!_roundPage)      _roundPage      = await import('./pages/round.page.js');        return _roundPage; }
+async function getStudyPage() {
+  if (!_studyPage) {
+    try { _studyPage = await import('./pages/study.page.js'); }
+    catch (e) { alert('Failed to load study page: ' + e.message); throw e; }
+  }
+  return _studyPage;
+}
+async function getRoundPage() {
+  if (!_roundPage) {
+    try { _roundPage = await import('./pages/round.page.js'); }
+    catch (e) { alert('Failed to load round page: ' + e.message); throw e; }
+  }
+  return _roundPage;
+}
 async function getRoundResultPage(){ if (!_roundResultPage)_roundResultPage= await import('./pages/round-result.page.js'); return _roundResultPage; }
 
 // ============================================================
@@ -368,9 +390,14 @@ async function handleRoundStart(roundId) {
   const user = getCurrentUser();
   if (!user) { openAuthModal(); return; }
   _currentRoundId = roundId;
-  const sp = await getStudyPage();
-  showScreen('study');
-  sp.initStudyScreen(roundId, { onBeginRound: handleBeginRound, onBack: () => showScreen('path') });
+  try {
+    const sp = await getStudyPage();
+    showScreen('study');
+    sp.initStudyScreen(roundId, { onBeginRound: handleBeginRound, onBack: () => showScreen('path') });
+  } catch (e) {
+    alert('handleRoundStart failed: ' + e.message);
+    showScreen('path');
+  }
 }
 
 async function handleBeginRound(roundId) {
