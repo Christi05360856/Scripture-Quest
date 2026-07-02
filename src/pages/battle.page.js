@@ -268,8 +268,14 @@ function _showWaiting() {
       <p style="font-size:13px;color:var(--text-muted);margin-top:8px">
         You can safely close this page.<br>We'll show results next time you open the app. 📱
       </p>
+    <button id="battle-waiting-exit-btn" style="margin-top:20px;padding:12px 28px;border:none;border-radius:12px;background:var(--accent-primary,#4f46e5);color:#fff;font-weight:700;font-size:15px;cursor:pointer">← Back to Home</button>
     </div>`;
   screen.appendChild(overlay);
+
+  document.getElementById('battle-waiting-exit-btn')?.addEventListener('click', () => {
+    destroyBattleScreen();
+    _callbacks.onExit?.();
+  });
 
   if (!document.getElementById('battle-spin-style')) {
     const style = document.createElement('style');
