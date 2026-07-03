@@ -1840,7 +1840,7 @@ async function handleChallengeUser(opponentUid, opponentName) {
     const waLink = generateWhatsAppLink(result.code, user.displayName || 'Someone', _appUrl);
     const waBtn  = document.getElementById('whatsapp-share-btn');
     if (waBtn) waBtn.onclick = () => window.open(waLink, '_blank');
-    document.getElementById('challenge-create-modal')?.classList.remove('hidden');
+    showScreen('challenge');
     showToast(`Challenge ready! Share the code with ${opponentName}`, 'success', 5000);
     _unsubMatch();
     _matchUnsubscribe = listenToMatch(result.matchId, async match => {
