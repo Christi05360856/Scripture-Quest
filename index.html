@@ -1172,64 +1172,7 @@
     </div>
   </div>
 
-  <!-- ══ SCREEN: CHALLENGE LOBBY (legacy — kept for DOM completeness, never shown) ══ -->
-  <div id="screen-challenge" class="screen center hidden">
-    <div class="card" style="max-width:480px;text-align:center">
-      <p style="color:var(--text-muted)">Opening battle hub…</p>
-    </div>
-  </div>
-
-  <!-- ══ MODAL: CREATE CHALLENGE ══ -->
-  <div id="challenge-create-modal" class="modal hidden" role="dialog">
-    <div class="modal-content" style="max-width:440px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div style="font-size:44px">⚔️</div>
-        <button id="challenge-modal-close-btn" class="btn-ghost btn-sm"
-                style="font-size:22px;color:var(--text-muted);line-height:1;padding:4px 8px"
-                onclick="SQ.closeChallengeModal()">×</button>
-      </div>
-
-      <h3 style="margin-bottom:6px">Challenge Someone!</h3>
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">
-        A challenge code will be generated. Share it and they have 2 hours to accept!
-      </p>
-
-      <!-- Code display (hidden until generated) -->
-      <div id="challenge-code-box" class="hidden"
-           style="background:var(--bg-subtle);border:2px dashed var(--accent-primary);border-radius:var(--radius-lg);padding:20px;text-align:center;margin-bottom:16px">
-        <p style="font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:6px">CHALLENGE CODE</p>
-        <div id="challenge-code-display"
-             style="font-size:32px;font-weight:900;color:var(--accent-primary);letter-spacing:4px"></div>
-        <p style="font-size:11px;color:var(--text-muted);margin-top:8px;font-weight:600">Expires in 2 hours</p>
-      </div>
-
-      <!-- Step 1: Generate -->
-      <div id="challenge-create-actions">
-        <button class="btn-primary btn-full" id="generate-challenge-btn">
-          <i class="fas fa-bolt"></i> Generate Challenge Link
-        </button>
-      </div>
-
-      <!-- Step 2: Share / Cancel (hidden until code generated) -->
-      <div id="challenge-share-actions" class="hidden" style="display:flex;flex-direction:column;gap:10px">
-        <button id="whatsapp-share-btn"
-                style="background:#25D366;color:white;border:none;padding:14px;border-radius:var(--radius-md);font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-          <i class="fab fa-whatsapp"></i> Share on WhatsApp
-        </button>
-        <button id="challenge-cancel-btn" class="btn-secondary btn-full">
-          <i class="fas fa-times"></i> Cancel Challenge
-        </button>
-      </div>
-
-      <!-- Battle history (populated by app.js _loadBattleHistoryIntoHub) -->
-      <div style="margin-top:20px">
-        <p style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
-          Recent Battles
-        </p>
-        <div id="challenge-hub-history"></div>
-      </div>
-    </div>
-  </div>
+  
 
   <!-- ══ SCREEN: BATTLE ARENA (full page) ══ -->
   <div id="screen-challenge" class="screen hidden">
