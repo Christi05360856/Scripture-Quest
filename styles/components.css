@@ -1894,3 +1894,190 @@
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-12px); }
 }
+
+/* ============================================
+   BATTLE ARENA — full-page redesign
+   ============================================ */
+
+.battle-hub-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.battle-hub-back-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.battle-hub-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.battle-hub-body {
+  padding: 20px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.battle-hub-create-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.battle-hub-code-box {
+  background: var(--bg-subtle);
+  border: 2px dashed var(--accent-primary);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.battle-hub-code-label  { font-size: 12px; color: var(--text-muted); font-weight: 700; margin-bottom: 6px; }
+.battle-hub-code-display{ font-size: 32px; font-weight: 900; color: var(--accent-primary); letter-spacing: 4px; }
+.battle-hub-code-expiry { font-size: 11px; color: var(--text-muted); margin-top: 8px; font-weight: 600; }
+
+.battle-hub-share-actions { display: flex; flex-direction: column; gap: 10px; }
+
+.battle-hub-whatsapp-btn {
+  background: #25D366; color: white; border: none;
+  padding: 14px; border-radius: var(--radius-md);
+  font-size: 15px; font-weight: 800; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: inherit;
+}
+
+.battle-hub-section-label {
+  font-size: 12px; font-weight: 800; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
+}
+
+.battle-history-loading, .battle-history-empty {
+  text-align: center; padding: 32px 0; color: var(--text-muted);
+}
+.battle-history-empty-icon  { font-size: 40px; margin-bottom: 8px; }
+.battle-history-empty-title { font-size: 14px; font-weight: 700; color: var(--text-secondary); }
+.battle-history-empty-sub   { font-size: 12px; margin-top: 4px; }
+
+.battle-history-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.battle-history-card:active { transform: scale(0.98); }
+
+.battle-history-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-subtle);
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+}
+.battle-history-avatar svg { width: 100%; height: 100%; }
+
+.battle-history-info { flex: 1; min-width: 0; }
+.battle-history-name {
+  font-size: 14px; font-weight: 800; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.battle-history-score { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-top: 2px; }
+.vs-sep { color: var(--text-muted); font-size: 10px; }
+
+.battle-history-chip {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.chip-win     { background: var(--success-bg); color: var(--success-text); }
+.chip-loss    { background: var(--error-bg);   color: var(--error-text); }
+.chip-draw    { background: var(--info-bg);    color: var(--info-text); }
+.chip-pending { background: var(--warning-bg); color: var(--warning-text); }
+.chip-active  { background: var(--info-bg);    color: var(--info-text); }
+.chip-neutral { background: var(--bg-subtle);  color: var(--text-muted); }
+
+.battle-history-cancel-btn {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: var(--error-bg);
+  color: var(--error);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.battle-history-chevron { color: var(--text-muted); font-size: 12px; flex-shrink: 0; }
+
+.battle-detail-date { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+
+.battle-detail-breakdown { margin-bottom: 24px; }
+.battle-detail-question-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.battle-detail-question-icon { font-size: 16px; flex-shrink: 0; }
+.battle-detail-question-text { font-size: 14px; color: var(--text-primary); flex: 1; }
+
+.battle-detail-actions { margin-top: 8px; }
+
+/* Downloadable share card — rendered off-screen, captured by html2canvas */
+.battle-share-card {
+  display: none;
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 480px;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 32px;
+  background: var(--accent-gradient);
+  font-family: var(--font-body);
+  color: white;
+  border-radius: 24px;
+}
+.battle-share-card-brand { font-size: 16px; font-weight: 800; opacity: 0.9; margin-bottom: 8px; }
+.battle-share-card-title { font-size: 28px; font-weight: 900; margin-bottom: 28px; }
+.battle-share-card-row   { display: flex; align-items: center; gap: 24px; margin-bottom: 24px; }
+.battle-share-card-player { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.battle-share-card-avatar {
+  width: 88px; height: 88px; border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: 3px solid white;
+  overflow: hidden;
+}
+.battle-share-card-avatar svg { width: 100%; height: 100%; }
+.battle-share-card-name  { font-size: 15px; font-weight: 800; }
+.battle-share-card-pct   { font-size: 32px; font-weight: 900; }
+.battle-share-card-score { font-size: 13px; opacity: 0.85; }
+.battle-share-card-vs    { font-size: 18px; font-weight: 900; opacity: 0.8; }
+.battle-share-card-footer{ font-size: 12px; opacity: 0.75; margin-top: 8px; }
