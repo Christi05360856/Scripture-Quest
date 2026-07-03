@@ -1230,6 +1230,109 @@
       </div>
     </div>
   </div>
+
+  <!-- ══ SCREEN: BATTLE ARENA (full page) ══ -->
+  <div id="screen-challenge" class="screen hidden">
+    <div class="battle-hub-header">
+      <button class="battle-hub-back-btn" id="battle-hub-back-btn" aria-label="Back">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <div class="battle-hub-title">⚔️ Battle Arena</div>
+    </div>
+
+    <div class="battle-hub-body">
+      <div class="battle-hub-create-card">
+        <div id="challenge-code-box" class="hidden battle-hub-code-box">
+          <p class="battle-hub-code-label">CHALLENGE CODE</p>
+          <div id="challenge-code-display" class="battle-hub-code-display"></div>
+          <p class="battle-hub-code-expiry">Expires in 2 hours</p>
+        </div>
+
+        <div id="challenge-create-actions">
+          <button class="btn-primary btn-full" id="generate-challenge-btn">
+            <i class="fas fa-bolt"></i> Generate Challenge Link
+          </button>
+        </div>
+
+        <div id="challenge-share-actions" class="hidden battle-hub-share-actions">
+          <button id="whatsapp-share-btn" class="battle-hub-whatsapp-btn">
+            <i class="fab fa-whatsapp"></i> Share on WhatsApp
+          </button>
+          <button id="challenge-cancel-btn" class="btn-secondary btn-full">
+            <i class="fas fa-times"></i> Cancel Challenge
+          </button>
+        </div>
+      </div>
+
+      <div class="battle-hub-history-section">
+        <p class="battle-hub-section-label">Recent Battles</p>
+        <div id="challenge-hub-history"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: BATTLE HISTORY DETAIL (full page) ══ -->
+  <div id="screen-battle-history-detail" class="screen hidden">
+    <div class="battle-hub-header">
+      <button class="battle-hub-back-btn" id="battle-detail-back-btn" aria-label="Back">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <div class="battle-hub-title" id="battle-detail-title">Battle Result</div>
+    </div>
+
+    <div class="battle-hub-body">
+      <p class="battle-detail-date" id="battle-detail-date"></p>
+
+      <div class="battle-score-grid">
+        <div class="battle-score-card" id="battle-detail-score-me">
+          <div class="battle-score-avatar" id="battle-detail-my-avatar"></div>
+          <div class="battle-score-name"   id="battle-detail-my-name">You</div>
+          <div class="battle-score-pct"    id="battle-detail-my-pct">0%</div>
+          <div class="battle-score-detail" id="battle-detail-my-score">0/15</div>
+        </div>
+        <div class="battle-score-vs">VS</div>
+        <div class="battle-score-card" id="battle-detail-score-opp">
+          <div class="battle-score-avatar" id="battle-detail-opp-avatar"></div>
+          <div class="battle-score-name"   id="battle-detail-opp-name">Opponent</div>
+          <div class="battle-score-pct"    id="battle-detail-opp-pct">0%</div>
+          <div class="battle-score-detail" id="battle-detail-opp-score">0/15</div>
+        </div>
+      </div>
+
+      <p class="battle-hub-section-label">Question Breakdown</p>
+      <div id="battle-detail-breakdown" class="battle-detail-breakdown"></div>
+
+      <div class="battle-detail-actions">
+        <button class="btn-primary btn-full" id="battle-detail-download-btn">
+          <i class="fas fa-download"></i> Download Result
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden share-card, captured as an image via html2canvas -->
+  <div id="battle-share-card" class="battle-share-card">
+    <div class="battle-share-card-brand">📖 ScriptureQuest</div>
+    <div class="battle-share-card-title" id="share-card-title">Battle Complete!</div>
+    <div class="battle-share-card-row">
+      <div class="battle-share-card-player">
+        <div class="battle-share-card-avatar" id="share-card-my-avatar"></div>
+        <div class="battle-share-card-name" id="share-card-my-name">You</div>
+        <div class="battle-share-card-pct" id="share-card-my-pct">0%</div>
+        <div class="battle-share-card-score" id="share-card-my-score">0/15</div>
+      </div>
+      <div class="battle-share-card-vs">VS</div>
+      <div class="battle-share-card-player">
+        <div class="battle-share-card-avatar" id="share-card-opp-avatar"></div>
+        <div class="battle-share-card-name" id="share-card-opp-name">Opponent</div>
+        <div class="battle-share-card-pct" id="share-card-opp-pct">0%</div>
+        <div class="battle-share-card-score" id="share-card-opp-score">0/15</div>
+      </div>
+    </div>
+    <div class="battle-share-card-footer" id="share-card-date">Today</div>
+  </div>
+
+  
   <!-- ══ MODAL: ACCEPT CHALLENGE ══ -->
   <div id="challenge-accept-modal" class="modal hidden" role="dialog">
     <div class="modal-content" style="max-width:440px">
