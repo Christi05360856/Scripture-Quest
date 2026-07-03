@@ -152,7 +152,7 @@ async function getRoundResultPage(){ if (!_roundResultPage)_roundResultPage= awa
 const SCREENS = [
   'loading','landing','onboarding-intro','notification-gate',
   'path','quiz','result','leaderboard','rewards','profile','settings',
-  'battle','battle-result','challenge',
+  'battle','battle-result','challenge','battle-history-detail',
   'study','round','round-result',
   'lesson-complete','unit-complete','section-complete'
 ];
@@ -165,7 +165,7 @@ function showScreen(name) {
 
   const nav   = document.getElementById('bottom-nav');
   const noNav = ['loading','onboarding-intro','notification-gate','quiz','result','round',
-                 'study','battle','battle-result','challenge'];
+                 'study','battle','battle-result','challenge','battle-history-detail'];
   if (nav) nav.classList.toggle('hidden', noNav.includes(name));
 
   document.querySelectorAll('.nav-item').forEach(btn =>
@@ -1479,21 +1479,20 @@ function _hideChallengePendingOverlay() {
 function openChallengeHub() {
   const user = getCurrentUser();
   if (!user) { openAuthModal(); return; }
+  showScreen('challenge');
+}
 
-  const modalContent = document.querySelector('#challenge-create-modal .modal-content');
-  if (modalContent) {
-    modalContent.style.maxHeight    = 'calc(var(--vh, 1vh) * 85)';
-    modalContent.style.overflowY    = 'auto';
-    modalContent.style.overflowX    = 'hidden';
-    modalContent.style.webkitOverflowScrolling = 'touch';
-    modalContent.style.maxWidth     = '440px';
-    modalContent.style.width        = '92vw';
-    modalContent.style.margin       = '0 auto';
-    modalContent.style.borderRadius = 'var(--radius-lg, 16px)';
-    modalContent.style.paddingBottom = '24px';
-  }
+function closeChallengeModal() {
+  showScreen('path');
+}
 
-  _setVhUnit();
+// ============================================================
+// BATTLE ARENA — full page init
+// ============================================================
+
+function initChallengeScreen() {
+  const user = getCurrentUser();
+  if (!user) { showScreen('path'); openAuthModal(); return; }
 
   const codeBox       = document.getElementById('challenge-code-box');
   const createActions = document.getElementById('challenge-create-actions');
@@ -1512,16 +1511,9 @@ function openChallengeHub() {
     shareActions?.classList.add('hidden');
   }
 
-  document.getElementById('challenge-create-modal')?.classList.remove('hidden');
+  document.getElementById('battle-hub-back-btn').onclick = () => showScreen('path');
+
   _loadBattleHistoryIntoHub(user.uid);
-}
-
-function _setVhUnit() {
-  document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
-}
-
-function closeChallengeModal() {
-  document.getElementById('challenge-create-modal')?.classList.add('hidden');
 }
 
 // ============================================================
@@ -1532,78 +1524,85 @@ async function _loadBattleHistoryIntoHub(uid) {
   const container = document.getElementById('challenge-hub-history');
   if (!container) return;
 
-  container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 0;color:var(--text-muted);font-size:13px;font-weight:600"><i class="fas fa-spinner fa-spin"></i> Loading battles…</div>`;
+  container.innerHTML = `<div class="battle-history-loading"><i class="fas fa-spinner fa-spin"></i> Loading battles…</div>`;
 
   try {
     const matches = await getUserMatches(uid);
+    _battleHistoryCache = matches.slice(0, 15);
+
     if (!matches.length) {
-      container.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--text-muted)"><div style="font-size:36px;margin-bottom:8px">⚔️</div><p style="font-size:13px;font-weight:700">No battles yet!</p><p style="font-size:12px;margin-top:4px">Challenge someone to get started.</p></div>`;
+      container.innerHTML = `<div class="battle-history-empty"><div class="battle-history-empty-icon">⚔️</div><p class="battle-history-empty-title">No battles yet!</p><p class="battle-history-empty-sub">Challenge someone to get started.</p></div>`;
       return;
     }
 
-    const cards = matches.slice(0, 15).map(m => {
+    container.innerHTML = _battleHistoryCache.map((m, i) => {
       const isCreator = m.creatorId === uid;
       const oppName   = (isCreator ? m.opponentName : m.creatorName) || 'Opponent';
       const myPct     = isCreator ? m.creatorPct  : m.opponentPct;
       const oppPct    = isCreator ? m.opponentPct : m.creatorPct;
 
-      let resultChip = '—', resultColor = 'var(--text-muted)', resultBg = 'var(--bg-subtle)', resultBorder = 'var(--border)';
+      let resultChip = '—', chipClass = 'chip-neutral';
       if (m.status === 'completed') {
-        if (m.winnerId === 'draw') { resultChip = '🤝 Draw'; resultColor = '#6366f1'; resultBg = '#ede9fe'; resultBorder = '#c4b5fd'; }
-        else if (m.winnerId === uid) { resultChip = '🏆 Won'; resultColor = '#16a34a'; resultBg = '#dcfce7'; resultBorder = '#86efac'; }
-        else { resultChip = '😔 Lost'; resultColor = '#dc2626'; resultBg = '#fee2e2'; resultBorder = '#fca5a5'; }
-      } else if (m.status === 'pending' || m.status === 'waiting') {
-        resultChip = '⏳ Pending'; resultColor = '#d97706'; resultBg = '#fef3c7'; resultBorder = '#fcd34d';
-      } else if (m.status === 'active') {
-        resultChip = '⚔️ Active'; resultColor = '#2563eb'; resultBg = '#dbeafe'; resultBorder = '#93c5fd';
-      } else if (m.status === 'cancelled' || m.status === 'rejected') {
-        resultChip = '✕ Cancelled';
-      }
+        if (m.winnerId === 'draw')   { resultChip = '🤝 Draw'; chipClass = 'chip-draw'; }
+        else if (m.winnerId === uid) { resultChip = '🏆 Won';  chipClass = 'chip-win'; }
+        else                         { resultChip = '😔 Lost'; chipClass = 'chip-loss'; }
+      } else if (m.status === 'pending' || m.status === 'waiting') { resultChip = '⏳ Pending'; chipClass = 'chip-pending'; }
+      else if (m.status === 'active')                              { resultChip = '⚔️ Active';  chipClass = 'chip-active'; }
+      else if (m.status === 'cancelled' || m.status === 'rejected'){ resultChip = '✕ Cancelled'; chipClass = 'chip-neutral'; }
 
       const score = (m.status === 'completed' && myPct !== null)
-        ? `${myPct}% <span style="color:var(--text-muted);font-size:10px">vs</span> ${oppPct ?? '?'}%`
-        : '<span style="color:var(--text-muted)">—</span>';
+        ? `${myPct}% <span class="vs-sep">vs</span> ${oppPct ?? '?'}%`
+        : '<span class="vs-sep">—</span>';
 
       const mId       = m.matchId || m.id || '';
       const canCancel = (m.status === 'active' || m.status === 'pending' || m.status === 'waiting') && mId;
       const cancelBtn = canCancel
-        ? `<button onclick="window.SQ&&SQ.cancelMatchById('${mId}')" style="flex-shrink:0;background:var(--error,#ef4444);color:white;border:none;border-radius:20px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;margin-left:4px" title="Cancel this match">✕ Cancel</button>`
-        : '';
+        ? `<button class="battle-history-cancel-btn" onclick="event.stopPropagation();window.SQ&&SQ.cancelMatchById('${mId}')" title="Cancel">✕</button>`
+        : '<i class="fas fa-chevron-right battle-history-chevron"></i>';
 
-      const _idx = matches.indexOf(m);
       return `
-        <div class="battle-history-row" data-history-index="${_idx}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg-card,#fff);border:1px solid var(--border);border-radius:var(--radius-md,10px);margin-bottom:8px;cursor:pointer">
-          <div style="width:36px;height:36px;border-radius:50%;background:var(--accent-warm-bg,#fef3c7);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">⚔️</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:800;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">vs ${escapeHTML(oppName)}</div>
-            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-top:2px">${score}</div>
+        <div class="battle-history-card" data-history-index="${i}">
+          <div class="battle-history-avatar" id="bh-avatar-${i}"></div>
+          <div class="battle-history-info">
+            <div class="battle-history-name">vs ${escapeHTML(oppName)}</div>
+            <div class="battle-history-score">${score}</div>
           </div>
-          <div style="flex-shrink:0;padding:4px 10px;border-radius:20px;border:1px solid ${resultBorder};background:${resultBg};color:${resultColor};font-size:11px;font-weight:800;white-space:nowrap">${resultChip}</div>
+          <div class="battle-history-chip ${chipClass}">${resultChip}</div>
           ${cancelBtn}
         </div>`;
     }).join('');
 
-  _battleHistoryCache = matches.slice(0, 15);
-    container.innerHTML = `<div style="margin-top:4px"><p style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Recent Battles (${Math.min(matches.length,15)})</p>${cards}</div>`;
+    _battleHistoryCache.forEach((m, i) => {
+      const isCreator = m.creatorId === uid;
+      const oppAvatar = (isCreator ? m.opponentAvatar : m.creatorAvatar) || 'M01';
+      const el = document.getElementById(`bh-avatar-${i}`);
+      if (el) mountAvatar(oppAvatar, el);
+    });
 
-    container.querySelectorAll('.battle-history-row').forEach(row => {
+    container.querySelectorAll('.battle-history-card').forEach(row => {
       row.addEventListener('click', (e) => {
-        if (e.target.closest('button')) return; // don't open detail when tapping Cancel
+        if (e.target.closest('button')) return;
         const idx = parseInt(row.dataset.historyIndex, 10);
         const match = _battleHistoryCache[idx];
-        if (match) _showBattleHistoryDetail(match, uid);
+        if (match) initBattleHistoryDetailScreen(match, uid);
       });
     });
 
   } catch (e) {
-    container.innerHTML = `<div style="text-align:center;padding:12px 0;color:var(--text-muted);font-size:13px">Couldn't load history.</div>`;
+    container.innerHTML = `<div class="battle-history-empty"><p class="battle-history-empty-title">Couldn't load history.</p></div>`;
   }
 }
 
-function _showBattleHistoryDetail(match, uid) {
+// ============================================================
+// BATTLE HISTORY DETAIL — full page
+// ============================================================
+
+function initBattleHistoryDetailScreen(match, uid) {
   const isCreator = match.creatorId === uid;
   const myName    = isCreator ? (match.creatorName  || 'You')      : (match.opponentName || 'You');
   const oppName   = isCreator ? (match.opponentName || 'Opponent') : (match.creatorName   || 'Opponent');
+  const myAvatar  = (isCreator ? match.creatorAvatar  : match.opponentAvatar) || 'M01';
+  const oppAvatar = (isCreator ? match.opponentAvatar : match.creatorAvatar) || 'M01';
   const myScore   = isCreator ? match.creatorScore  : match.opponentScore;
   const oppScore  = isCreator ? match.opponentScore : match.creatorScore;
   const myPct     = isCreator ? match.creatorPct    : match.opponentPct;
@@ -1613,55 +1612,101 @@ function _showBattleHistoryDetail(match, uid) {
   const iWon      = match.winnerId === uid;
   const ts        = match.completedAt || match.createdAt;
   const ms        = ts?.toMillis?.() || ts;
-  const dateText  = ms ? new Date(ms).toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' · ' + new Date(ms).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}) : '';
+  const dateText  = ms ? new Date(ms).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) + ' · ' + new Date(ms).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}) : '';
   const myAnswers = isCreator ? match.creatorAnswers : match.opponentAnswers;
 
-  const breakdown = (match.questions || []).map((q) => {
-    const idx = match.questions.indexOf(q);
-    const correct = myAnswers?.[idx] === q.correctAnswer;
-    return `<div style="display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid var(--border,#eee)">
-      <span style="font-size:16px">${correct ? '✅' : '❌'}</span>
-      <span style="font-size:13px;flex:1">${escapeHTML(q.question)}</span>
+  document.getElementById('battle-detail-title').textContent =
+    isDraw ? "It's a Draw!" : iWon ? 'Victory!' : match.status === 'completed' ? 'Defeat' : 'Battle Details';
+  document.getElementById('battle-detail-date').textContent =
+    dateText + (match.code ? ' · Code: ' + match.code : '');
+
+  document.getElementById('battle-detail-my-name').textContent   = myName;
+  document.getElementById('battle-detail-opp-name').textContent  = oppName;
+  document.getElementById('battle-detail-my-pct').textContent    = (myPct ?? '—') + '%';
+  document.getElementById('battle-detail-opp-pct').textContent   = (oppPct ?? '—') + '%';
+  document.getElementById('battle-detail-my-score').textContent  = `${myScore ?? 0}/${total}`;
+  document.getElementById('battle-detail-opp-score').textContent = `${oppScore ?? 0}/${total}`;
+
+  document.getElementById('battle-detail-score-me').classList.toggle('battle-winner', !isDraw && iWon);
+  document.getElementById('battle-detail-score-opp').classList.toggle('battle-winner', !isDraw && !iWon && match.status === 'completed');
+
+  mountAvatar(myAvatar,  document.getElementById('battle-detail-my-avatar'));
+  mountAvatar(oppAvatar, document.getElementById('battle-detail-opp-avatar'));
+
+  const breakdownEl = document.getElementById('battle-detail-breakdown');
+  const rows = (match.questions || []).map((q, i) => {
+    const correct = myAnswers?.[i] === q.correctAnswer;
+    return `<div class="battle-detail-question-row">
+      <span class="battle-detail-question-icon">${correct ? '✅' : '❌'}</span>
+      <span class="battle-detail-question-text">${escapeHTML(q.question)}</span>
     </div>`;
   }).join('');
+  breakdownEl.innerHTML = rows || '<p class="battle-history-empty-sub">No breakdown available.</p>';
 
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;justify-content:center';
-  overlay.innerHTML = `
-    <div style="background:var(--bg-card,#fff);border-radius:20px 20px 0 0;max-height:85vh;overflow-y:auto;width:100%;max-width:520px;padding:24px 20px 32px">
-      <div style="width:36px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 16px"></div>
-      <h2 style="font-size:18px;font-weight:800;margin-bottom:4px">${escapeHTML(myName)} vs ${escapeHTML(oppName)}</h2>
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">${dateText}${match.code ? ' · Code: ' + escapeHTML(match.code) : ''}</p>
-      <div style="display:flex;gap:12px;margin-bottom:16px">
-        <div style="flex:1;text-align:center;padding:12px;border-radius:12px;background:${!isDraw && iWon ? '#dcfce7' : '#f3f4f6'}">
-          <div style="font-size:12px;color:var(--text-muted)">${escapeHTML(myName)}</div>
-          <div style="font-size:22px;font-weight:900">${myPct ?? '—'}%</div>
-          <div style="font-size:12px;color:var(--text-muted)">${myScore ?? 0}/${total}</div>
-        </div>
-        <div style="flex:1;text-align:center;padding:12px;border-radius:12px;background:${!isDraw && !iWon ? '#dcfce7' : '#f3f4f6'}">
-          <div style="font-size:12px;color:var(--text-muted)">${escapeHTML(oppName)}</div>
-          <div style="font-size:22px;font-weight:900">${oppPct ?? '—'}%</div>
-          <div style="font-size:12px;color:var(--text-muted)">${oppScore ?? 0}/${total}</div>
-        </div>
-      </div>
-      <div style="font-weight:700;font-size:14px;margin-bottom:4px">Question Breakdown</div>
-      <div style="max-height:220px;overflow-y:auto;margin-bottom:20px">${breakdown || '<p style="font-size:13px;color:var(--text-muted)">No breakdown available.</p>'}</div>
-      <div style="display:flex;gap:10px">
-        <button id="bh-share-btn" style="flex:1;padding:12px;border:none;border-radius:12px;background:var(--accent-primary,#4f46e5);color:#fff;font-weight:700;cursor:pointer">Share Result</button>
-        <button id="bh-close-btn" style="flex:1;padding:12px;border:1px solid var(--border,#ddd);border-radius:12px;background:none;font-weight:700;cursor:pointer">Close</button>
-      </div>
-    </div>`;
+  document.getElementById('battle-detail-download-btn').onclick = () =>
+    _downloadBattleShareCard({ myName, oppName, myAvatar, oppAvatar, myPct, oppPct, myScore, oppScore, total, dateText });
 
-  document.body.appendChild(overlay);
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
-  overlay.querySelector('#bh-close-btn').addEventListener('click', () => overlay.remove());
-  overlay.querySelector('#bh-share-btn').addEventListener('click', () => {
-    const text = `⚔️ Bible Quiz Battle Result\n${myName}: ${myPct ?? 0}% (${myScore ?? 0}/${total})\n${oppName}: ${oppPct ?? 0}% (${oppScore ?? 0}/${total})\n${dateText}`;
-    if (navigator.share) { navigator.share({ title: 'Battle Result', text }).catch(() => {}); }
-    else { navigator.clipboard?.writeText(text); showToast('Result copied to clipboard! 📋', 'success'); }
-  });
+  document.getElementById('battle-detail-back-btn').onclick = () => showScreen('challenge');
+
+  showScreen('battle-history-detail');
 }
 
+// ============================================================
+// DOWNLOAD RESULT AS IMAGE
+// ============================================================
+
+let _html2canvasPromise = null;
+function _loadHtml2Canvas() {
+  if (window.html2canvas) return Promise.resolve();
+  if (_html2canvasPromise) return _html2canvasPromise;
+  _html2canvasPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+  return _html2canvasPromise;
+}
+
+async function _downloadBattleShareCard(data) {
+  const btn = document.getElementById('battle-detail-download-btn');
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing…';
+
+  try {
+    await _loadHtml2Canvas();
+
+    document.getElementById('share-card-title').textContent =
+      data.myPct === data.oppPct ? "It's a Draw!" : data.myPct > data.oppPct ? 'Victory!' : 'Battle Complete';
+    document.getElementById('share-card-my-name').textContent   = data.myName;
+    document.getElementById('share-card-opp-name').textContent  = data.oppName;
+    document.getElementById('share-card-my-pct').textContent    = (data.myPct ?? 0) + '%';
+    document.getElementById('share-card-opp-pct').textContent   = (data.oppPct ?? 0) + '%';
+    document.getElementById('share-card-my-score').textContent  = `${data.myScore ?? 0}/${data.total}`;
+    document.getElementById('share-card-opp-score').textContent = `${data.oppScore ?? 0}/${data.total}`;
+    document.getElementById('share-card-date').textContent      = data.dateText;
+    mountAvatar(data.myAvatar,  document.getElementById('share-card-my-avatar'));
+    mountAvatar(data.oppAvatar, document.getElementById('share-card-opp-avatar'));
+
+    const cardEl = document.getElementById('battle-share-card');
+    cardEl.style.display = 'flex';
+
+    const canvas = await window.html2canvas(cardEl, { scale: 2, backgroundColor: null });
+    cardEl.style.display = 'none';
+
+    const link = document.createElement('a');
+    link.download = `scripturequest-battle-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (e) {
+    showToast('Could not generate image: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
+}
 // ============================================================
 // CHALLENGE SYSTEM
 // ============================================================
