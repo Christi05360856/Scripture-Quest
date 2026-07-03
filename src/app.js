@@ -75,6 +75,7 @@ let _appUrl                 = window.location.origin;
 let _incomingChallenge      = null;
 let _challengeTimerInterval = null;
 let _outgoingChallengeId    = null;
+let _battleHistoryCache     = [];
 
 // V5: Path / round / study page lazy loaders
 let _pathPage               = null;
@@ -1569,8 +1570,9 @@ async function _loadBattleHistoryIntoHub(uid) {
         ? `<button onclick="window.SQ&&SQ.cancelMatchById('${mId}')" style="flex-shrink:0;background:var(--error,#ef4444);color:white;border:none;border-radius:20px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;margin-left:4px" title="Cancel this match">✕ Cancel</button>`
         : '';
 
+      const _idx = matches.indexOf(m);
       return `
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg-card,#fff);border:1px solid var(--border);border-radius:var(--radius-md,10px);margin-bottom:8px">
+        <div class="battle-history-row" data-history-index="${_idx}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg-card,#fff);border:1px solid var(--border);border-radius:var(--radius-md,10px);margin-bottom:8px;cursor:pointer">
           <div style="width:36px;height:36px;border-radius:50%;background:var(--accent-warm-bg,#fef3c7);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">⚔️</div>
           <div style="flex:1;min-width:0">
             <div style="font-size:13px;font-weight:800;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">vs ${escapeHTML(oppName)}</div>
@@ -1581,11 +1583,83 @@ async function _loadBattleHistoryIntoHub(uid) {
         </div>`;
     }).join('');
 
+  _battleHistoryCache = matches.slice(0, 15);
     container.innerHTML = `<div style="margin-top:4px"><p style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Recent Battles (${Math.min(matches.length,15)})</p>${cards}</div>`;
+
+    container.querySelectorAll('.battle-history-row').forEach(row => {
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('button')) return; // don't open detail when tapping Cancel
+        const idx = parseInt(row.dataset.historyIndex, 10);
+        const match = _battleHistoryCache[idx];
+        if (match) _showBattleHistoryDetail(match, uid);
+      });
+    });
 
   } catch (e) {
     container.innerHTML = `<div style="text-align:center;padding:12px 0;color:var(--text-muted);font-size:13px">Couldn't load history.</div>`;
   }
+}
+
+function _showBattleHistoryDetail(match, uid) {
+  const isCreator = match.creatorId === uid;
+  const myName    = isCreator ? (match.creatorName  || 'You')      : (match.opponentName || 'You');
+  const oppName   = isCreator ? (match.opponentName || 'Opponent') : (match.creatorName   || 'Opponent');
+  const myScore   = isCreator ? match.creatorScore  : match.opponentScore;
+  const oppScore  = isCreator ? match.opponentScore : match.creatorScore;
+  const myPct     = isCreator ? match.creatorPct    : match.opponentPct;
+  const oppPct    = isCreator ? match.opponentPct   : match.creatorPct;
+  const total     = match.questions?.length || 15;
+  const isDraw    = match.winnerId === 'draw';
+  const iWon      = match.winnerId === uid;
+  const ts        = match.completedAt || match.createdAt;
+  const ms        = ts?.toMillis?.() || ts;
+  const dateText  = ms ? new Date(ms).toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' · ' + new Date(ms).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}) : '';
+  const myAnswers = isCreator ? match.creatorAnswers : match.opponentAnswers;
+
+  const breakdown = (match.questions || []).map((q) => {
+    const idx = match.questions.indexOf(q);
+    const correct = myAnswers?.[idx] === q.correctAnswer;
+    return `<div style="display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid var(--border,#eee)">
+      <span style="font-size:16px">${correct ? '✅' : '❌'}</span>
+      <span style="font-size:13px;flex:1">${escapeHTML(q.question)}</span>
+    </div>`;
+  }).join('');
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;justify-content:center';
+  overlay.innerHTML = `
+    <div style="background:var(--bg-card,#fff);border-radius:20px 20px 0 0;max-height:85vh;overflow-y:auto;width:100%;max-width:520px;padding:24px 20px 32px">
+      <div style="width:36px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 16px"></div>
+      <h2 style="font-size:18px;font-weight:800;margin-bottom:4px">${escapeHTML(myName)} vs ${escapeHTML(oppName)}</h2>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">${dateText}${match.code ? ' · Code: ' + escapeHTML(match.code) : ''}</p>
+      <div style="display:flex;gap:12px;margin-bottom:16px">
+        <div style="flex:1;text-align:center;padding:12px;border-radius:12px;background:${!isDraw && iWon ? '#dcfce7' : '#f3f4f6'}">
+          <div style="font-size:12px;color:var(--text-muted)">${escapeHTML(myName)}</div>
+          <div style="font-size:22px;font-weight:900">${myPct ?? '—'}%</div>
+          <div style="font-size:12px;color:var(--text-muted)">${myScore ?? 0}/${total}</div>
+        </div>
+        <div style="flex:1;text-align:center;padding:12px;border-radius:12px;background:${!isDraw && !iWon ? '#dcfce7' : '#f3f4f6'}">
+          <div style="font-size:12px;color:var(--text-muted)">${escapeHTML(oppName)}</div>
+          <div style="font-size:22px;font-weight:900">${oppPct ?? '—'}%</div>
+          <div style="font-size:12px;color:var(--text-muted)">${oppScore ?? 0}/${total}</div>
+        </div>
+      </div>
+      <div style="font-weight:700;font-size:14px;margin-bottom:4px">Question Breakdown</div>
+      <div style="max-height:220px;overflow-y:auto;margin-bottom:20px">${breakdown || '<p style="font-size:13px;color:var(--text-muted)">No breakdown available.</p>'}</div>
+      <div style="display:flex;gap:10px">
+        <button id="bh-share-btn" style="flex:1;padding:12px;border:none;border-radius:12px;background:var(--accent-primary,#4f46e5);color:#fff;font-weight:700;cursor:pointer">Share Result</button>
+        <button id="bh-close-btn" style="flex:1;padding:12px;border:1px solid var(--border,#ddd);border-radius:12px;background:none;font-weight:700;cursor:pointer">Close</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector('#bh-close-btn').addEventListener('click', () => overlay.remove());
+  overlay.querySelector('#bh-share-btn').addEventListener('click', () => {
+    const text = `⚔️ Bible Quiz Battle Result\n${myName}: ${myPct ?? 0}% (${myScore ?? 0}/${total})\n${oppName}: ${oppPct ?? 0}% (${oppScore ?? 0}/${total})\n${dateText}`;
+    if (navigator.share) { navigator.share({ title: 'Battle Result', text }).catch(() => {}); }
+    else { navigator.clipboard?.writeText(text); showToast('Result copied to clipboard! 📋', 'success'); }
+  });
 }
 
 // ============================================================
