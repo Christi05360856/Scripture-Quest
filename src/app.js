@@ -1486,6 +1486,10 @@ function closeChallengeModal() {
   showScreen('path');
 }
 
+function _setVhUnit() {
+  document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+}
+
 // ============================================================
 // BATTLE ARENA — full page init
 // ============================================================
