@@ -1814,10 +1814,6 @@ async function acceptChallengeByCode() {
   }
 }
 
-function initChallengeScreen() {
-  showScreen('landing');
-  openChallengeHub();
-}
 
 async function handleChallengeUser(opponentUid, opponentName) {
   const user = getCurrentUser();
