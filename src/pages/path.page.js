@@ -4,7 +4,7 @@
 
 import { getPathStructure, computeLockState,
          getFirstRoundId }                from '../services/path.service.js';
-import { getUserProgress }                from '../services/progress.service.js';
+import { getUserProgress, unlockRoundWithXP, getXpBalance, XP_UNLOCK_COST } from '../services/progress.service.js';
 import { getCurrentUser, getUserProfile } from '../state/store.js';
 
 // ── Module state ──
@@ -56,7 +56,9 @@ export async function initPathPage({ user, onRoundStart }) {
   try {
     _progress  = await getUserProgress(user.uid);
     _lockState = computeLockState(_progress);
+    _applyXpOverrides(_lockState, _progress);
 
+    // Determine which section should auto-expand: the first
     // Determine which section should auto-expand: the first
     // section that is NOT fully complete (i.e. the active one).
     _expandedSectionId = _findActiveSectionId();
@@ -329,9 +331,8 @@ function _bindNodeTaps(container) {
   container.querySelectorAll('.path-node[data-state="locked"]').forEach(node => {
     node.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (window.SQ?.showToast) {
-        window.SQ.showToast('Complete the previous round first to unlock this one.', 'info', 3000);
-      }
+      const roundId = node.dataset.roundId;
+      if (roundId) _showUnlockModal(roundId);
     });
   });
 
@@ -402,6 +403,96 @@ function _scrollToCurrentNode() {
     behavior: 'smooth'
   });
 }
+// ============================================
+// XP UNLOCK OVERRIDES
+// Rounds unlocked via XP show as "available" even though the
+// normal sequential progress hasn't reached them yet. This never
+// touches path.service.js — it's applied purely on the client
+// right after the normal lock state is computed.
+// ============================================
+
+function _applyXpOverrides(lockState, progress) {
+  if (!lockState?.roundState || !progress?.xpUnlockedRounds) return;
+  Object.keys(progress.xpUnlockedRounds).forEach(rid => {
+    if (lockState.roundState[rid] === 'locked') {
+      lockState.roundState[rid] = 'available';
+    }
+  });
+}
+
+// ============================================
+// UNLOCK WITH XP — confirmation modal
+// ============================================
+
+async function _showUnlockModal(roundId) {
+  const user = getCurrentUser();
+  if (!user) { window.SQ?.showToast?.('Please sign in first.', 'info', 3000); return; }
+
+  let balanceInfo;
+  try {
+    balanceInfo = await getXpBalance(user.uid);
+  } catch (e) {
+    window.SQ?.showToast?.('Could not check your XP balance.', 'error', 3000);
+    return;
+  }
+
+  const canAfford = balanceInfo.balance >= XP_UNLOCK_COST;
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:250;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.innerHTML = `
+    <div style="background:var(--bg-card,#fff);border-radius:20px;max-width:360px;width:100%;padding:28px 24px;text-align:center">
+      <div style="font-size:44px;margin-bottom:8px">🔓</div>
+      <h3 style="font-size:18px;font-weight:800;margin-bottom:8px;color:var(--text-primary)">Unlock This Round?</h3>
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:20px">
+        Skip ahead and unlock this round instantly using your XP.
+      </p>
+      <div style="background:var(--bg-subtle,#f5f5f7);border-radius:14px;padding:16px;margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px">
+          <span style="color:var(--text-muted)">Cost</span>
+          <span style="font-weight:800;color:var(--text-primary)">${XP_UNLOCK_COST} XP</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:14px">
+          <span style="color:var(--text-muted)">Your Balance</span>
+          <span style="font-weight:800;color:${canAfford ? 'var(--text-primary)' : '#ef4444'}">${balanceInfo.balance} XP</span>
+        </div>
+      </div>
+      ${canAfford
+        ? `<button id="unlock-confirm-btn" class="btn-primary btn-full" style="margin-bottom:10px">Unlock for ${XP_UNLOCK_COST} XP</button>`
+        : `<p style="font-size:13px;color:#ef4444;font-weight:700;margin-bottom:10px">Not enough XP — keep learning to earn more!</p>`
+      }
+      <button id="unlock-cancel-btn" class="btn-secondary btn-full">Cancel</button>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector('#unlock-cancel-btn').addEventListener('click', () => overlay.remove());
+
+  const confirmBtn = overlay.querySelector('#unlock-confirm-btn');
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', async () => {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Unlocking…';
+      try {
+        await unlockRoundWithXP(roundId);
+        overlay.remove();
+        window.SQ?.showToast?.('Round unlocked! 🎉', 'success', 3000);
+
+        _progress  = await getUserProgress(user.uid);
+        _lockState = computeLockState(_progress);
+        _applyXpOverrides(_lockState, _progress);
+
+        const content = el('path-content');
+        if (content) _renderPath(content);
+      } catch (e) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = `Unlock for ${XP_UNLOCK_COST} XP`;
+        window.SQ?.showToast?.(e.message || 'Unlock failed.', 'error', 3500);
+      }
+    });
+  }
+}
+
 
 // ============================================
 // STATE HELPERS
