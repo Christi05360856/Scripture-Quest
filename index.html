@@ -1255,27 +1255,63 @@
   </div>
 
   <!-- Hidden share-card, captured as an image via html2canvas -->
-  <div id="battle-share-card" class="battle-share-card">
-    <div class="battle-share-card-brand">📖 ScriptureQuest</div>
-    <div class="battle-share-card-title" id="share-card-title">Battle Complete!</div>
-    <div class="battle-share-card-row">
-      <div class="battle-share-card-player">
-        <div class="battle-share-card-avatar" id="share-card-my-avatar"></div>
-        <div class="battle-share-card-name" id="share-card-my-name">You</div>
-        <div class="battle-share-card-pct" id="share-card-my-pct">0%</div>
-        <div class="battle-share-card-score" id="share-card-my-score">0/15</div>
+<div id="battle-share-card" class="share2-card">
+    <div class="share2-header">
+      <div class="share2-brand">📖 SCRIPTUREQUEST</div>
+      <div class="share2-pill" id="share2-pill">VICTORY</div>
+    </div>
+
+    <div class="share2-players">
+      <div class="share2-player">
+        <div class="share2-avatar" id="share-card-my-avatar"></div>
+        <div class="share2-name" id="share-card-my-name">You</div>
+        <div class="share2-role">CHALLENGER</div>
       </div>
-      <div class="battle-share-card-vs">VS</div>
-      <div class="battle-share-card-player">
-        <div class="battle-share-card-avatar" id="share-card-opp-avatar"></div>
-        <div class="battle-share-card-name" id="share-card-opp-name">Opponent</div>
-        <div class="battle-share-card-pct" id="share-card-opp-pct">0%</div>
-        <div class="battle-share-card-score" id="share-card-opp-score">0/15</div>
+      <div class="share2-vs">VS</div>
+      <div class="share2-player">
+        <div class="share2-avatar" id="share-card-opp-avatar"></div>
+        <div class="share2-name" id="share-card-opp-name">Opponent</div>
+        <div class="share2-role">CHALLENGER</div>
       </div>
     </div>
-<div class="battle-share-card-footer" id="share-card-date">Today</div>
-    <div class="battle-share-card-tagline">⚔️ Challenge me on ScriptureQuest!</div>
-  </div>
+
+    <div class="share2-stats-panel">
+      <div class="share2-stats-row">
+        <div class="share2-stat-block">
+          <div class="share2-pct" id="share-card-my-pct">0%</div>
+          <div class="share2-score" id="share-card-my-score">0/15</div>
+        </div>
+        <div class="share2-divider"></div>
+        <div class="share2-stat-block">
+          <div class="share2-pct" id="share-card-opp-pct">0%</div>
+          <div class="share2-score" id="share-card-opp-score">0/15</div>
+        </div>
+      </div>
+      <div class="share2-bars-row">
+        <div class="share2-bar-track"><div class="share2-bar-fill share2-bar-me" id="share-card-my-bar"></div></div>
+        <div class="share2-bar-track"><div class="share2-bar-fill share2-bar-opp" id="share-card-opp-bar"></div></div>
+      </div>
+    </div>
+
+    <div class="share2-chips">
+      <div class="share2-chip">
+        <div class="share2-chip-icon">✨</div>
+        <div class="share2-chip-label">XP EARNED</div>
+        <div class="share2-chip-value" id="share-card-xp">+0</div>
+      </div>
+      <div class="share2-chip">
+        <div class="share2-chip-icon">📖</div>
+        <div class="share2-chip-label">QUESTIONS</div>
+        <div class="share2-chip-value" id="share-card-questions">15</div>
+      </div>
+    </div>
+
+    <div class="share2-footer">
+      <div class="share2-date" id="share-card-date">Today</div>
+      <div class="share2-tagline">⚔️ Challenge me on ScriptureQuest!</div>
+      <div class="share2-url">SCRIPTUREQUEST.APP</div>
+    </div>
+</div>
 
   
   <!-- ══ MODAL: ACCEPT CHALLENGE ══ -->
