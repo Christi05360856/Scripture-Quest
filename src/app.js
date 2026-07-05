@@ -1683,17 +1683,37 @@ async function _downloadBattleShareCard(data) {
   try {
     await _loadHtml2Canvas();
 
-    document.getElementById('share-card-title').textContent =
-      data.myPct === data.oppPct ? "It's a Draw!" : data.myPct > data.oppPct ? 'Victory!' : 'Battle Complete';
+    const myPct  = data.myPct  ?? 0;
+    const oppPct = data.oppPct ?? 0;
+    const isDraw = myPct === oppPct;
+    const iWon   = !isDraw && myPct > oppPct;
+    const xp     = isDraw ? 25 : iWon ? 50 : 10;
+
+    const pill = document.getElementById('share2-pill');
+    pill.textContent = isDraw ? 'DRAW' : iWon ? 'VICTORY' : 'DEFEAT';
+    pill.className = 'share2-pill' + (isDraw ? ' pill-draw' : !iWon ? ' pill-loss' : '');
+
     document.getElementById('share-card-my-name').textContent   = data.myName;
     document.getElementById('share-card-opp-name').textContent  = data.oppName;
-    document.getElementById('share-card-my-pct').textContent    = (data.myPct ?? 0) + '%';
-    document.getElementById('share-card-opp-pct').textContent   = (data.oppPct ?? 0) + '%';
+    document.getElementById('share-card-my-pct').textContent    = myPct + '%';
+    document.getElementById('share-card-opp-pct').textContent   = oppPct + '%';
     document.getElementById('share-card-my-score').textContent  = `${data.myScore ?? 0}/${data.total}`;
     document.getElementById('share-card-opp-score').textContent = `${data.oppScore ?? 0}/${data.total}`;
     document.getElementById('share-card-date').textContent      = data.dateText;
-    mountAvatar(data.myAvatar,  document.getElementById('share-card-my-avatar'));
-    mountAvatar(data.oppAvatar, document.getElementById('share-card-opp-avatar'));
+    document.getElementById('share-card-xp').textContent        = '+' + xp;
+    document.getElementById('share-card-questions').textContent = data.total;
+
+    document.getElementById('share-card-my-bar').style.width  = myPct + '%';
+    document.getElementById('share-card-opp-bar').style.width = oppPct + '%';
+
+    const myAvatarEl  = document.getElementById('share-card-my-avatar');
+    const oppAvatarEl = document.getElementById('share-card-opp-avatar');
+    myAvatarEl.className  = 'share2-avatar' + (isDraw ? '' : iWon ? ' glow-win' : ' glow-lose');
+    oppAvatarEl.className = 'share2-avatar' + (isDraw ? '' : !iWon ? ' glow-win' : ' glow-lose');
+    mountAvatar(data.myAvatar,  myAvatarEl);
+    mountAvatar(data.oppAvatar, oppAvatarEl);
+
+    
 
  const cardEl = document.getElementById('battle-share-card');
     const isLight = getCurrentTheme().applied === 'light';
