@@ -6,7 +6,7 @@
 import { initAuthListener, login, register,
          logout, updateProfile_,
          resetPassword, getAuthErrorMessage }   from './services/auth.service.js';
-import { initTheme, setTheme, toggleTheme }     from './services/theme.service.js';
+import { initTheme, setTheme, toggleTheme, getCurrentTheme } from './services/theme.service.js';
 import { checkAndShowAnnouncements }            from './services/notification.service.js';
 import { checkDailyLimit, loadQuizStateFromStorage,
          clearQuizStorage, createQuizSession,
@@ -1602,6 +1602,7 @@ async function _loadBattleHistoryIntoHub(uid) {
 // ============================================================
 
 function initBattleHistoryDetailScreen(match, uid) {
+  _loadHtml2Canvas(); // preload in background so Download is instant later
   const isCreator = match.creatorId === uid;
   const myName    = isCreator ? (match.creatorName  || 'You')      : (match.opponentName || 'You');
   const oppName   = isCreator ? (match.opponentName || 'Opponent') : (match.creatorName   || 'Opponent');
@@ -1694,7 +1695,9 @@ async function _downloadBattleShareCard(data) {
     mountAvatar(data.myAvatar,  document.getElementById('share-card-my-avatar'));
     mountAvatar(data.oppAvatar, document.getElementById('share-card-opp-avatar'));
 
-    const cardEl = document.getElementById('battle-share-card');
+ const cardEl = document.getElementById('battle-share-card');
+    const isLight = getCurrentTheme().applied === 'light';
+    cardEl.classList.toggle('share2-light', isLight);
     cardEl.style.display = 'flex';
 
     const canvas = await window.html2canvas(cardEl, { scale: 2, backgroundColor: null });
