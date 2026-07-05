@@ -15,7 +15,8 @@ import {
 } from 'firebase/firestore';
 import { getRound, parseRoundId, getPathStructure, computeLockState } from './path.service.js';
 
-const PASS_THRESHOLD = 70; // % — requires 5/7 correct
+const PASS_THRESHOLD  = 70; // % — requires 5/7 correct
+const XP_UNLOCK_COST  = 500; // XP cost to unlock one round out of sequence
 
 // XP constants
 const XP_PER_CORRECT      = 10;
@@ -44,7 +45,8 @@ export async function getUserProgress(uid) {
       totalRoundsCompleted: data.totalRoundsCompleted || 0,
       currentSectionId:  data.currentSectionId  || null,
       currentLessonKey:  data.currentLessonKey  || null,
-      currentRoundId:    data.currentRoundId    || null
+      currentRoundId:    data.currentRoundId    || null,
+      xpUnlockedRounds:  data.xpUnlockedRounds  || {}
     };
   } catch (e) {
     console.warn('[Progress] Fetch error:', e.message);
@@ -56,7 +58,8 @@ function _emptyProgress() {
   return {
     completedRounds: {}, completedLessons: {}, completedUnits: {}, completedSections: {},
     totalPathXp: 0, totalRoundsCompleted: 0,
-    currentSectionId: null, currentLessonKey: null, currentRoundId: null
+    currentSectionId: null, currentLessonKey: null, currentRoundId: null,
+    xpUnlockedRounds: {}
   };
 }
 
@@ -251,6 +254,71 @@ async function _addXpToUserStats(uid, xpAmount) {
   }
 }
 
+// ============================================
+// XP BALANCE — spendable XP (Total XP earned minus XP spent unlocking rounds)
+// This is NEVER a separately-tracked number; it's always derived live
+// from userStats, so it can never drift out of sync.
+// ============================================
+
+export async function getXpBalance(uid) {
+  if (!uid) return { totalXp: 0, xpSpent: 0, balance: 0 };
+  try {
+    const snap = await getDoc(doc(db, 'userStats', uid));
+    const data = snap.exists() ? snap.data() : {};
+    const totalXp = data.totalXp || 0;
+    const xpSpent = data.xpSpent || 0;
+    return { totalXp, xpSpent, balance: Math.max(0, totalXp - xpSpent) };
+  } catch (e) {
+    console.warn('[Progress] getXpBalance error:', e.message);
+    return { totalXp: 0, xpSpent: 0, balance: 0 };
+  }
+}
+
+// ============================================
+// UNLOCK A ROUND WITH XP
+// Spends XP_UNLOCK_COST from the spendable balance and marks
+// the round as manually unlocked — does NOT touch totalXp,
+// level, or the leaderboard in any way.
+// ============================================
+
+export async function unlockRoundWithXP(roundId) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('You must be logged in.');
+  if (!roundId) throw new Error('No round specified.');
+
+  const { xpSpent, balance } = await getXpBalance(user.uid);
+  if (balance < XP_UNLOCK_COST) {
+    throw new Error(`You need ${XP_UNLOCK_COST} XP to unlock a round. You have ${balance}.`);
+  }
+
+  const progress = await getUserProgress(user.uid);
+  if (progress.completedRounds?.[roundId]?.passed) {
+    throw new Error('This round is already completed.');
+  }
+  if (progress.xpUnlockedRounds?.[roundId]) {
+    throw new Error('This round is already unlocked.');
+  }
+
+  const updatedUnlocked = { ...(progress.xpUnlockedRounds || {}), [roundId]: true };
+
+  try {
+    await setDoc(doc(db, 'userProgress', user.uid), {
+      xpUnlockedRounds: updatedUnlocked,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    await setDoc(doc(db, 'userStats', user.uid), {
+      xpSpent: xpSpent + XP_UNLOCK_COST,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (e) {
+    console.error('[Progress] unlockRoundWithXP write error:', e.message);
+    throw new Error('Unlock failed. Please check your connection and try again.');
+  }
+
+  return { roundId, spent: XP_UNLOCK_COST, newBalance: balance - XP_UNLOCK_COST };
+}
+
 function _calcLevel(xp) {
   let level = 1, used = 0;
   while (true) {
@@ -276,11 +344,14 @@ export async function getLockState(uid) {
   return computeLockState(progress);
 }
 
-export { PASS_THRESHOLD };
+export { PASS_THRESHOLD, XP_UNLOCK_COST };
 
 export default {
   getUserProgress,
   submitRound,
   getLockState,
-  PASS_THRESHOLD
+  getXpBalance,
+  unlockRoundWithXP,
+  PASS_THRESHOLD,
+  XP_UNLOCK_COST
 };
