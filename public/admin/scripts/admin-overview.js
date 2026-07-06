@@ -5,8 +5,23 @@
 import { db, getWeekId, fmtDate, esc, toast, showConfirm }
   from './admin-core.js';
 import { collection, query, where, orderBy, limit,
-         getDocs, Timestamp }
+         getDocs, getDoc, doc, Timestamp }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const _userNameCache = new Map();
+
+async function _resolveUserName(uid) {
+  if (!uid) return 'Unknown';
+  if (_userNameCache.has(uid)) return _userNameCache.get(uid);
+  try {
+    const snap = await getDoc(doc(db, 'users', uid));
+    const name = snap.exists() ? (snap.data().displayName || 'Anonymous') : 'Deleted User';
+    _userNameCache.set(uid, name);
+    return name;
+  } catch {
+    return uid.slice(0, 8) + '…'; // fallback if lookup fails, at least don't crash
+  }
+}
 
 export async function loadOverview() {
   try {
@@ -72,15 +87,18 @@ export async function loadRecentAttempts() {
   if (!tbody) return;
   tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-2);padding:22px">Loading…</td></tr>';
   try {
-    const snap = await getDocs(query(collection(db,'quizAttempts'), orderBy('timestamp','desc'), limit(12)));
+const snap = await getDocs(query(collection(db,'quizAttempts'), orderBy('timestamp','desc'), limit(12)));
     if (snap.empty) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">No attempts yet</div></td></tr>'; return; }
     tbody.innerHTML = '';
-    snap.forEach(d => {
-      const a   = d.data();
+
+    const attempts = snap.docs.map(d => d.data());
+    const names = await Promise.all(attempts.map(a => _resolveUserName(a.userId)));
+
+    attempts.forEach((a, i) => {
       const pct = a.percentage || 0;
       const col = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
       tbody.innerHTML += `<tr>
-        <td style="color:var(--text);font-weight:600">${esc((a.userId||'').slice(0,8)+'…')}</td>
+        <td style="color:var(--text);font-weight:600">${esc(names[i])}</td>
         <td>${a.score||0}/${a.totalQuestions||15}</td>
         <td style="color:${col};font-weight:800">${pct}%</td>
         <td style="color:var(--amber)">+${a.xpEarned||0} XP</td>
