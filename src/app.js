@@ -178,7 +178,7 @@ function showScreen(name) {
   setBattleFabVisible(FAB_SCREENS.includes(name));
   setDailyFabVisible(name === 'path');
 
-  if (name === 'path')        initPathScreen();
+  if (name === 'path')        { initPathScreen(); _maybeShowInstallPrompt(); }
   if (name === 'leaderboard') initLeaderboardScreen();
   if (name === 'rewards')     initRewardsScreen();
   if (name === 'profile')     initProfileScreen();
@@ -1491,6 +1491,57 @@ function _setVhUnit() {
 }
 
 // ============================================================
+// PWA INSTALL PROMPT
+// ============================================================
+
+function _maybeShowInstallPrompt() {
+  if (!_deferredInstallPrompt) return;
+  if (window.matchMedia('(display-mode: standalone)').matches) return; // already installed
+  if (localStorage.getItem('sq_install_prompt_dismissed')) return;
+  if (localStorage.getItem('sq_install_prompt_shown')) return;
+
+  localStorage.setItem('sq_install_prompt_shown', '1');
+  setTimeout(_showInstallModal, 1200);
+}
+
+function _showInstallModal() {
+  if (!_deferredInstallPrompt) return;
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;justify-content:center';
+  overlay.innerHTML = `
+    <div style="background:var(--bg-card,#fff);border-radius:24px 24px 0 0;max-width:480px;width:100%;padding:28px 24px 32px;text-align:center">
+      <div style="width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:white">SQ</div>
+      <h3 style="font-size:19px;font-weight:800;margin-bottom:8px;color:var(--text-primary)">Install ScriptureQuest</h3>
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:22px;line-height:1.5">
+        Add ScriptureQuest to your home screen for quick access — no browser tabs, just tap and go.
+      </p>
+      <button id="install-app-confirm-btn" class="btn-primary btn-full" style="margin-bottom:10px">
+        <i class="fas fa-download"></i> Install App
+      </button>
+      <button id="install-app-cancel-btn" class="btn-secondary btn-full">Not Now</button>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('#install-app-cancel-btn').addEventListener('click', () => {
+    localStorage.setItem('sq_install_prompt_dismissed', '1');
+    overlay.remove();
+  });
+
+  overlay.querySelector('#install-app-confirm-btn').addEventListener('click', async () => {
+    overlay.remove();
+    if (!_deferredInstallPrompt) return;
+    _deferredInstallPrompt.prompt();
+    const { outcome } = await _deferredInstallPrompt.userChoice;
+    if (outcome === 'accepted') {
+      localStorage.setItem('sq_install_prompt_dismissed', '1');
+    }
+    _deferredInstallPrompt = null;
+  });
+}
+
+// ============================================================
 // BATTLE ARENA — full page init
 // ============================================================
 
@@ -1984,7 +2035,13 @@ function escapeHTML(str) {
 document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('resize', _setVhUnit);
-  _setVhUnit();
+_setVhUnit();
+
+let _deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+});
 
   // ── Battle FAB ──
   document.getElementById('battle-fab')?.addEventListener('click', openChallengeHub);
