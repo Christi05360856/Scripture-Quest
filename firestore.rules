@@ -166,6 +166,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ── SCHEDULED NOTIFICATIONS (Admin panel) ──
+    match /scheduledNotifications/{docId} {
+      allow read, write: if isAdmin();
+    }
+
     // ── ADMIN LOGS ──
     match /adminLogs/{logId} {
       allow read, write: if isAdmin();
