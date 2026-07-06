@@ -76,6 +76,7 @@ let _incomingChallenge      = null;
 let _challengeTimerInterval = null;
 let _outgoingChallengeId    = null;
 let _battleHistoryCache     = [];
+let _deferredInstallPrompt  = null;
 
 // V5: Path / round / study page lazy loaders
 let _pathPage               = null;
@@ -2037,7 +2038,6 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', _setVhUnit);
 _setVhUnit();
 
-let _deferredInstallPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   _deferredInstallPrompt = e;
