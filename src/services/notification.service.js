@@ -43,6 +43,12 @@ function getMessagingInstance() {
 // ============================================
 // PERMISSION + TOKEN
 // ============================================
+function _withTimeout(promise, ms, timeoutMessage) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(timeoutMessage)), ms))
+  ]);
+}
 
 export async function requestPushPermission() {
   const user = auth.currentUser;
@@ -55,11 +61,16 @@ export async function requestPushPermission() {
     const messaging = getMessagingInstance();
     if (!messaging) return { granted: false, reason: 'messaging_unavailable' };
 
-    const registration = await navigator.serviceWorker.ready;
-    const token = await getToken(messaging, {
-      vapidKey: VAPID_KEY,
-      serviceWorkerRegistration: registration
-    });
+    // Guard against a stuck/failed Service Worker hanging this forever —
+    // if it doesn't become ready within 8s, treat it as a soft failure
+    // instead of leaving the user stuck on "Requesting..." with no way out.
+    const registration = await _withTimeout(
+      navigator.serviceWorker.ready, 8000, 'service_worker_timeout'
+    );
+    const token = await _withTimeout(
+      getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: registration }),
+      8000, 'token_timeout'
+    );
 
     if (token) { await savePushToken(user.uid, token); return { granted: true, token }; }
     return { granted: false, reason: 'no_token' };
