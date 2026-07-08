@@ -49,11 +49,10 @@ import { sendDirectChallenge, listenForIncomingChallenges,
 // GLOBAL ERROR CATCHER (temporary debug aid — mobile-safe)
 // ============================================================
 window.addEventListener('unhandledrejection', (e) => {
-  alert('UNHANDLED ERROR: ' + (e.reason?.message || e.reason));
   console.error('[Unhandled Rejection]', e.reason);
 });
 window.addEventListener('error', (e) => {
-  alert('SCRIPT ERROR: ' + e.message + ' (' + e.filename + ':' + e.lineno + ')');
+  console.error('[Script Error]', e.message, `(${e.filename}:${e.lineno})`);
 });
 
 // ============================================================
