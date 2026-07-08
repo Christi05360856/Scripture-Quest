@@ -5,7 +5,7 @@
 import { db, currentAdmin, fmtDate, esc, toast, showConfirm }
   from './admin-core.js';
 import { collection, query, orderBy, limit, getDocs,
-         addDoc, serverTimestamp, Timestamp }
+         addDoc, updateDoc, doc, serverTimestamp, Timestamp }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 export function updatePreview() {
@@ -72,6 +72,16 @@ export function sendNotif() {
   });
 }
 
+export async function cancelNotif(docId) {
+  showConfirm('🗑️','Cancel Notification','Cancel this pending notification? It will not be sent.', async () => {
+    try {
+      await updateDoc(doc(db,'scheduledNotifications', docId), { status: 'cancelled' });
+      toast('Notification cancelled', 'ok');
+      loadNotifHistory();
+    } catch(e) { toast('Failed: ' + e.message, 'err'); }
+  });
+}
+
 export async function loadNotifHistory() {
   const el = document.getElementById('notif-history');
   if (!el) return;
@@ -88,6 +98,9 @@ export async function loadNotifHistory() {
     snap.forEach(d => {
       const n  = { id: d.id, ...d.data() };
       const sb = n.status === 'sent' ? 'badge-green' : n.status === 'failed' ? 'badge-red' : 'badge-amber';
+     const cancelBtn = n.status === 'pending'
+        ? `<button class="btn-secondary btn-sm" onclick="window._adminNotif.cancelNotif('${d.id}')" style="margin-left:8px">Cancel</button>`
+        : '';
       el.innerHTML += `
         <div style="display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)">
           <div style="flex:1">
@@ -96,9 +109,10 @@ export async function loadNotifHistory() {
             <div style="font-size:10px;color:var(--text-3);margin-top:3px">${fmtDate(n.createdAt)} · ${esc(n.audience||'all')}</div>
           </div>
           <span class="badge ${sb}">${esc(n.status||'pending')}</span>
+          ${cancelBtn}
         </div>`;
     });
   } catch(e) { el.innerHTML = `<div class="empty-state" style="padding:20px">${esc(e.message)}</div>`; }
 }
 
-window._adminNotif = { updatePreview, toggleSchedule, fillTemplate, clearNotif, sendNotif };
+window._adminNotif = { updatePreview, toggleSchedule, fillTemplate, clearNotif, sendNotif, cancelNotif };
