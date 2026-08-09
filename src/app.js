@@ -974,10 +974,12 @@ function initProfileScreen() {
   const current = xp - ((level - 1) * 1000);
   const pct    = Math.min(100, Math.round((current / 1000) * 100));
 
-  if (el('p-quizzes'))     el('p-quizzes').textContent     = safeStats.quizzesTaken    || 0;
-  if (el('p-streak'))      el('p-streak').textContent      = safeStats.currentStreak   || 0;
-  if (el('p-best-streak')) el('p-best-streak').textContent = safeStats.longestStreak   || 0;
-  if (el('p-perfect'))     el('p-perfect').textContent     = safeStats.perfectScores   || 0;
+  if (el('p-quizzes'))       el('p-quizzes').textContent       = safeStats.quizzesTaken    || 0;
+  if (el('p-streak'))        el('p-streak').textContent        = safeStats.currentStreak   || 0;
+  if (el('p-longest-streak')) el('p-longest-streak').textContent = safeStats.longestStreak  || 0;
+  if (el('p-best'))          el('p-best').textContent          = `${safeStats.bestScore || 0}%`;
+  if (el('p-level'))         el('p-level').textContent         = level;
+  if (el('p-perfect'))       el('p-perfect').textContent       = safeStats.perfectScores   || 0;
   if (el('p-weekly-pts'))  el('p-weekly-pts').textContent  = (safeStats.weeklyPoints||0).toLocaleString();
   if (el('p-total-xp'))    el('p-total-xp').textContent    = xp.toLocaleString();
   if (el('p-lvl-current')) el('p-lvl-current').textContent = level;
@@ -1200,6 +1202,25 @@ function renderResultScreen(result) {
   const el     = id => document.getElementById(id);
   const pct    = result.percentage || 0;
   const passed = pct >= SCORE_PASS_THRESHOLD;
+
+  // Keep the cached stats in sync with what the server just told us —
+  // otherwise anything reading getUserStats() elsewhere in this same
+  // session (Daily Challenge modal, Profile) keeps showing whatever
+  // was true when the app first loaded, no matter how much is earned
+  // afterward.
+  const currentStats = getUserStats() || {};
+  setState('auth', {
+    stats: {
+      ...currentStats,
+      totalXp:      result.totalXp      ?? currentStats.totalXp,
+      level:        result.newLevel     ?? currentStats.level,
+      currentStreak: result.streak      ?? currentStats.currentStreak,
+      weeklyPoints: result.weeklyPoints ?? currentStats.weeklyPoints,
+      quizzesTaken: (currentStats.quizzesTaken || 0) + 1,
+      bestScore:    Math.max(currentStats.bestScore || 0, pct),
+      longestStreak: Math.max(currentStats.longestStreak || 0, result.streak || 0)
+    }
+  });
 
   if (el('result-icon'))    el('result-icon').textContent    = pct === 100 ? '🏆' : passed ? '🎉' : '📖';
   if (el('result-title'))   el('result-title').textContent   = pct === 100 ? 'Perfect Score!' : passed ? 'Well Done!' : 'Keep Practising!';
