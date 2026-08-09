@@ -23,6 +23,7 @@ import { setState, resetQuiz }    from '../state/store.js';
 import { initTheme }              from './theme.service.js';
 import { showToast }              from '../utils/toast.js';
 import { QUIZ_STATE_KEY }         from '../utils/constants.js';
+import { getCurrentWeekId }       from '../utils/week.js';
 
 // ── Register new user ──
 export async function register({ name, email, password }) {
@@ -93,16 +94,27 @@ export async function logout() {
 
 // ── Fetch user profile + stats ──
 export async function fetchUserData(uid) {
-  const [profileSnap, statsSnap] = await Promise.all([
+  const weekId = getCurrentWeekId();
+
+  const [profileSnap, statsSnap, weeklyEntrySnap] = await Promise.all([
     getDoc(doc(db, 'users', uid)),
-    getDoc(doc(db, 'userStats', uid))
+    getDoc(doc(db, 'userStats', uid)),
+    getDoc(doc(db, 'leaderboardWeekly', weekId, 'entries', uid))
   ]);
 
   const profile = profileSnap.exists() ? profileSnap.data() : null;
   const stats   = statsSnap.exists()   ? statsSnap.data()   : null;
 
-  return { profile, stats };
+  // weeklyPoints doesn't actually live on userStats — it's tracked
+  // separately per-week on the leaderboard entry itself. Merge it in
+  // here so every screen reading stats.weeklyPoints gets the real,
+  // current-week number instead of always seeing 0.
+  const weeklyPoints = weeklyEntrySnap.exists() ? (weeklyEntrySnap.data().points || 0) : 0;
+  const mergedStats = stats ? { ...stats, weeklyPoints } : null;
+
+  return { profile, stats: mergedStats };
 }
+
 
 // ── Update safe profile fields ──
 export async function updateProfile_({ uid, phone, network }) {
