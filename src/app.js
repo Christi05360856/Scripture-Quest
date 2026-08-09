@@ -19,7 +19,7 @@ import { fetchLeaderboard, subscribeLeaderboard,
 import { renderRewardTiers, renderRewardProgress,
          claimMilestoneReward, getSentMilestones } from './services/rewards.service.js';
 import { setState, getState, getCurrentUser,
-         getUserProfile, getUserStats, subscribe, setState }  from './state/store.js';
+         getUserProfile, getUserStats, subscribe }  from './state/store.js';
 import { showToast }                            from './utils/toast.js';
 import { getCurrentWeekId, getDisplayWeek,
          getTimeUntilNextWeek, formatCountdown } from './utils/week.js';
